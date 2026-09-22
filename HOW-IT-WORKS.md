@@ -3,7 +3,7 @@
 This is a modification of the original GBA game, built from the pinned
 [pret/pokeemerald decompilation](BUILD.md). It is not a video filter or a separate PC game.
 
-1. **Enter:** a supported wild encounter enters the arena. Unsupported encounters
+1. **Enter:** a supported wild or single trainer encounter enters the arena. Unsupported encounters
    keep Emerald's classic battle system.
 2. **Fight:** arena code handles movement, aiming, projectiles, enemy decisions
    and breakable objects. The native battle engine handles the supported move's

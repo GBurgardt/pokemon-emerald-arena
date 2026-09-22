@@ -2,6 +2,10 @@
 
 Pokémon Emerald with real time battles. Inside the original GBA game.
 
+Trainer battles and changing arenas are in [0.7.0 preview](PREVIEW.md).
+[Watch the new trailer · 46 seconds](media/emerald-arena-trainer-biomes.mp4).
+The stable download below remains 0.6.0.
+
 [**Download Emerald Arena**](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.6.0/Emerald-Arena-0.6.0.zip) · [Installation guide](PLAY.md)
 
 ## Watch gameplay

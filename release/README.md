@@ -1,4 +1,8 @@
-# Emerald Arena 0.6.0
+# Emerald Arena 0.7.0-preview.1
+
+Preview build. Supported single trainer battles and five arena environments.
+Doubles, link battles and unsupported encounters still use classic battles.
+Use a copy of your save. This is not full-game trainer compatibility.
 
 Pokémon Emerald with real-time battles. Move, dodge, attack and break the arena.
 Requires your own unmodified Emerald ROM (USA/Europe).
@@ -6,7 +10,7 @@ Requires your own unmodified Emerald ROM (USA/Europe).
 1. Extract this ZIP on a computer.
 2. Open **Prepare-Emerald-Arena.html** in a current Chrome, Safari or Firefox.
 3. Choose your original `.gba`, not a ZIP. Wait for verification and click **Download game**.
-4. Open **Emerald-Arena-0.6.0.gba** in your GBA emulator.
+4. Open **Emerald-Arena-0.7.0-preview.1.gba** in your GBA emulator.
 5. With a separate fresh save, highlight **NEW GAME** and press **SELECT**, not A.
 6. Press **L and R together** in the field to fight. Charizard leads; reorder the party to try others.
 
@@ -22,13 +26,14 @@ START to pause and choose moves with up/right/down/left; START to resume.
 Hold L + R in battle to aim a regular Poké Ball, release to throw, B to cancel.
 Balls come from your bag. A fresh practice save starts with 20; existing saves
 keep their own inventory. Other ball types remain available in classic battle.
-SELECT for classic battles. Save from the field menu.
+SELECT opens your party in supported trainer battles, or classic battles in wild
+encounters. Save from the field menu.
 These are GBA button names, not literal keyboard keys: check the emulator's input
 settings. Visit a Pokémon Center to restore HP and PP. Back up existing saves.
 
 Party: Charizard, Blastoise, Eevee, Dragonite, Scizor and Blaziken.
 Box 1: Treecko, Poochyena, Bulbasaur, Squirtle, Grovyle and Sceptile.
-92 animated Pokémon and 44 move profiles, including all Hoenn starter families.
+94 animated Pokémon and 50 move profiles, including all Hoenn starter families.
 Unsupported abilities, effects and movesets still use classic battles.
 This is not a fully rebalanced adventure.
 

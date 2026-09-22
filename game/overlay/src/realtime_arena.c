@@ -21,6 +21,7 @@
 #include "constants/weather.h"
 #include "battle.h"
 #include "battle_main.h"
+#include "battle_setup.h"
 #include "bg.h"
 #include "data.h"
 #include "decompress.h"
@@ -49,6 +50,8 @@
 #include "constants/battle_move_effects.h"
 #include "constants/heal_locations.h"
 #include "constants/items.h"
+#include "constants/trainers.h"
+#include "constants/hold_effects.h"
 #include "constants/moves.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
@@ -82,6 +85,7 @@ struct ArenaBody
     u8 actionLife, actionAge, connected, terrainMask,manualAim;
     s16 knockX,knockY;
     u16 burnClock;
+    u16 weatherClock;
     u8 statusActions;
 };
 
@@ -232,7 +236,7 @@ static const struct {u16 species;u8 level;} sPracticeRivals[] =
 {
     {SPECIES_EEVEE,36}, {SPECIES_BLASTOISE,36}, {SPECIES_SCIZOR,15},
     {SPECIES_BLAZIKEN,20}, {SPECIES_DRAGONITE,30}, {SPECIES_CHARIZARD,36},
-    {SPECIES_SCEPTILE,43}
+    {SPECIES_SCEPTILE,43}, {SPECIES_RAYQUAZA,60}, {SPECIES_MEWTWO,66}
 };
 static EWRAM_DATA u8 sPracticeRival = 0;
 
@@ -285,7 +289,8 @@ static bool8 SupportedBattler(u8 side)
     u32 i;
     // Only tested native damage, stat changes and burns enter the arena.
     // Other status/turn/item mechanics retain the complete classic battle.
-    if (gBattleMons[side].item || (gBattleMons[side].status1 & ~STATUS1_BURN)
+    if ((gBattleMons[side].item && GetItemHoldEffect(gBattleMons[side].item) != HOLD_EFFECT_RESTORE_HP)
+        || (gBattleMons[side].status1 & ~STATUS1_BURN)
         || (gBattleMons[side].status2 & ~(STATUS2_FOCUS_ENERGY|STATUS2_DEFENSE_CURL))
         || gStatuses3[side] || gBattleMons[side].hp == 0 || FirstMove(side, TRUE) == MAX_MON_MOVES)
         return FALSE;
@@ -327,6 +332,10 @@ static bool8 SupportedBattler(u8 side)
     case ABILITY_EARLY_BIRD: // Sleep actions/statuses remain classic.
     case ABILITY_ILLUMINATE: // Encounter-rate ability; no in-battle effect.
     case ABILITY_HYPER_CUTTER: // ChangeStatBuffs keeps its Attack protection.
+    case ABILITY_PRESSURE: // Fire charges an extra PP for opposing targeted actions.
+    case ABILITY_AIR_LOCK: // Weather encounters are still excluded by Eligible().
+    case ABILITY_SAND_VEIL:
+    case ABILITY_CLOUD_NINE:
         return TRUE;
     case ABILITY_STATIC:
     case ABILITY_EFFECT_SPORE:
@@ -362,8 +371,8 @@ static bool8 Eligible(void)
     if (gArenaLabMailbox.classic) return FALSE;
 #endif
     // FIRST_BATTLE is still a 1v1 with a real starter and native return script.
-    if (sArena.classic || gBattlersCount != 2 || (gBattleTypeFlags & ~(BATTLE_TYPE_FIRST_BATTLE | BATTLE_TYPE_IS_MASTER))
-        || gBattleWeather || gAbsentBattlerFlags
+    if (sArena.classic || gBattlersCount != 2 || (gBattleTypeFlags & ~(BATTLE_TYPE_FIRST_BATTLE | BATTLE_TYPE_IS_MASTER | BATTLE_TYPE_TRAINER))
+        || gAbsentBattlerFlags
         || !SupportedBattler(0) || !SupportedBattler(1))
         return FALSE;
     return TRUE;
@@ -607,6 +616,24 @@ static const struct OamData sTrainerOam =
     .shape = SPRITE_SHAPE(16x32), .size = SPRITE_SIZE(16x32), .priority = 1
 };
 
+static u8 OpponentGraphics(void)
+{
+    u8 pic = gTrainers[gTrainerBattleOpponent_A].trainerPic;
+    if (pic >= TRAINER_PIC_ELITE_FOUR_SIDNEY && pic <= TRAINER_PIC_LEADER_WINONA)
+        return OBJ_EVENT_GFX_SIDNEY + pic - TRAINER_PIC_ELITE_FOUR_SIDNEY;
+    switch (pic)
+    {
+    case TRAINER_PIC_HIKER: return OBJ_EVENT_GFX_HIKER;
+    case TRAINER_PIC_BUG_CATCHER: return OBJ_EVENT_GFX_BUG_CATCHER;
+    case TRAINER_PIC_SWIMMER_M: return OBJ_EVENT_GFX_SWIMMER_M;
+    case TRAINER_PIC_SWIMMER_F: return OBJ_EVENT_GFX_SWIMMER_F;
+    case TRAINER_PIC_LEADER_JUAN: return OBJ_EVENT_GFX_JUAN;
+    case TRAINER_PIC_CHAMPION_WALLACE: return OBJ_EVENT_GFX_WALLACE;
+    case TRAINER_PIC_STEVEN: return OBJ_EVENT_GFX_STEVEN;
+    default: return OBJ_EVENT_GFX_BOY_1;
+    }
+}
+
 static void CreateSidelineTrainers(void)
 {
     u32 i;
@@ -614,10 +641,11 @@ static void CreateSidelineTrainers(void)
     for (i = 0; i < 2; i++)
     {
         bool8 female = (gSaveBlock2Ptr->playerGender != 0) ^ (i != 0);
-        u8 graphicsId = female ? OBJ_EVENT_GFX_MAY_NORMAL : OBJ_EVENT_GFX_BRENDAN_NORMAL;
+        u8 graphicsId = i && (gBattleTypeFlags & BATTLE_TYPE_TRAINER) ? OpponentGraphics()
+            : female ? OBJ_EVENT_GFX_MAY_NORMAL : OBJ_EVENT_GFX_BRENDAN_NORMAL;
         const struct ObjectEventGraphicsInfo *info = GetObjectEventGraphicsInfo(graphicsId);
         struct SpriteSheet sheet = {info->images[2].data, 256, TRAINER_TAG + i};
-        struct SpritePalette pal = {female ? gObjectEventPal_May : gObjectEventPal_Brendan, TRAINER_TAG + i};
+        struct SpritePalette pal = {ArenaObjectPalette(info->paletteTag), TRAINER_TAG + i};
         struct SpriteTemplate template =
         {
             .tileTag = TRAINER_TAG + i, .paletteTag = TRAINER_TAG + i,
@@ -650,10 +678,12 @@ static void CreateSidelineTrainers(void)
 }
 
 #include "arena_capture.inc"
+#include "arena_biomes.inc"
 
 static void CB2_ArenaInit(void)
 {
     u32 i;
+    gRealtimeArenaQuietResult = FALSE;
     SetVBlankCallback(NULL);
     SetHBlankCallback(NULL);
     ScanlineEffect_Stop();
@@ -673,10 +703,8 @@ static void CB2_ArenaInit(void)
     SetGpuReg(REG_OFFSET_BLDCNT, 0);
     SetGpuReg(REG_OFFSET_BLDALPHA, 0);
     SetGpuReg(REG_OFFSET_BLDY, 0);
-    LoadPalette(sForestPalette, 0, sizeof(sForestPalette));
+    LoadArenaBiome();
     LoadPalette(sArenaPalette, 0, sizeof(sArenaPalette));
-    LoadBgTiles(1, sForestTiles, sizeof(sForestTiles), 0);
-    LoadBgTilemap(1, sForestMap, sizeof(sForestMap), 0);
     DrawStage();
     ArenaNav_Init();
     ArenaPhysics_Init();
@@ -880,7 +908,13 @@ static void Fire(u8 side, u8 slot, s32 targetX, s32 targetY)
     }
     body->actionLife = profile->active;
     body->actionAge = 0; body->connected = FALSE; body->terrainMask=0;
-    pp = --gBattleMons[side].pp[slot];
+    // Pressure applies on commitment, even if the projectile misses or hits
+    // cover. Self-targeted buffs do not target the opponent. Clamp the last PP.
+    pp = gBattleMons[side].pp[slot];
+    if (gBattleMons[side ^ 1].ability == ABILITY_PRESSURE
+        && gBattleMoves[profile->move].target != MOVE_TARGET_USER && pp > 1)
+        pp--;
+    gBattleMons[side].pp[slot] = --pp;
     SetMonData(side ? &gEnemyParty[gBattlerPartyIndexes[side]] : &gPlayerParty[gBattlerPartyIndexes[side]],
         MON_DATA_PP1 + slot, &pp);
     body->cooldown = profile->recovery + (side ? Clamp(8-gBattleMons[1].level/8,2,8) : 0);
@@ -888,7 +922,11 @@ static void Fire(u8 side, u8 slot, s32 targetX, s32 targetY)
     gArenaCombatTelemetry.lastMove[side] = profile->move;
     if(!gBattleMoves[profile->move].power && body->statusActions<255)body->statusActions++;
     sArena.hudDirty = TRUE;
-    PlaySE(profile->move == MOVE_WATER_GUN ? SE_M_BUBBLE_BEAM
+    PlaySE(profile->move == MOVE_PSYCHIC ? SE_M_PSYBEAM
+        : profile->move == MOVE_SHADOW_BALL ? SE_M_PSYBEAM2
+        : profile->move == MOVE_DRAGON_CLAW ? SE_M_SCRATCH
+        : profile->move == MOVE_CRUNCH ? SE_M_BITE
+        : profile->move == MOVE_WATER_GUN ? SE_M_BUBBLE_BEAM
         : profile->move == MOVE_FLAMETHROWER ? SE_M_FLAMETHROWER
         : profile->visual == ARENA_VIS_EMBER ? SE_M_EMBER
         : profile->move == MOVE_ROCK_THROW ? SE_M_ROCK_THROW
@@ -1554,6 +1592,56 @@ static void CB2_Arena(void)
                 gArenaFrameTelemetry.scanlines[1]=now-phaseStamp;phaseStamp=now;
                 TickPendingShots(); TickActions(); TickShots();
                 TickBurn();
+                for (i = 0; i < 2 && !sArena.resultTimer; i++)
+                {
+                    struct BattlePokemon *mon = &gBattleMons[i];
+                    struct ArenaBody *body = &sArena.bodies[i];
+                    if (++body->weatherClock >= 300)
+                    {
+                        u16 damage = 0;
+                        body->weatherClock = 0;
+                        if (gBattleMons[0].ability == ABILITY_AIR_LOCK || gBattleMons[1].ability == ABILITY_AIR_LOCK
+                            || gBattleMons[0].ability == ABILITY_CLOUD_NINE || gBattleMons[1].ability == ABILITY_CLOUD_NINE) continue;
+                        if ((gBattleWeather & B_WEATHER_SANDSTORM) && !IS_BATTLER_OF_TYPE(i, TYPE_ROCK)
+                            && !IS_BATTLER_OF_TYPE(i, TYPE_GROUND)
+                            && !IS_BATTLER_OF_TYPE(i, TYPE_STEEL) && mon->ability != ABILITY_SAND_VEIL)
+                            damage = max(1, mon->maxHP / 16);
+                        if ((gBattleWeather & B_WEATHER_HAIL) && !IS_BATTLER_OF_TYPE(i, TYPE_ICE))
+                            damage = max(1, mon->maxHP / 16);
+                        if ((gBattleWeather & B_WEATHER_RAIN) && mon->ability == ABILITY_RAIN_DISH)
+                            mon->hp = min(mon->maxHP, mon->hp + max(1, mon->maxHP / 16));
+                        damage = min(damage, mon->hp);
+                        mon->hp -= damage;
+                        SetMonData(i ? &gEnemyParty[gBattlerPartyIndexes[i]] : &gPlayerParty[gBattlerPartyIndexes[i]], MON_DATA_HP, &mon->hp);
+                        if (damage) ArenaFeedback_Impact(i, body->x/Q, body->y/Q, damage, ARENA_FEEDBACK_DAMAGE);
+                        sArena.hudDirty = TRUE;
+                        if (!mon->hp)
+                        {
+                            sArena.resultTimer=12; sArena.lastAttacker=i^1; sArena.lastTarget=i;
+                            gArenaResultTelemetry.started=gMain.vblankCounter1;
+                        }
+                    }
+                }
+                // Oran/Sitrus use their original Gen III HP thresholds and
+                // values. Consume once, persist to the actual party, and never
+                // resurrect a fainted Pokemon. No turn menu is needed.
+                for (i = 0; i < 2; i++)
+                {
+                    struct BattlePokemon *mon = &gBattleMons[i];
+                    if (mon->hp && mon->hp <= mon->maxHP / 2
+                        && GetItemHoldEffect(mon->item) == HOLD_EFFECT_RESTORE_HP)
+                    {
+                        u16 item = mon->item;
+                        struct Pokemon *party = i ? &gEnemyParty[gBattlerPartyIndexes[i]] : &gPlayerParty[gBattlerPartyIndexes[i]];
+                        mon->hp = min(mon->maxHP, mon->hp + GetItemHoldEffectParam(item));
+                        gBattleStruct->usedHeldItems[i] = item;
+                        mon->item = ITEM_NONE;
+                        SetMonData(party, MON_DATA_HELD_ITEM, &mon->item);
+                        SetMonData(party, MON_DATA_HP, &mon->hp);
+                        sArena.hudDirty = TRUE;
+                        PlaySE(SE_M_MORNING_SUN);
+                    }
+                }
             }
         }
     }
@@ -1721,7 +1809,9 @@ static void ArenaExit(bool8 fainted)
     }
     FreeAllWindowBuffers();
     sArena.active = FALSE;
-    sArena.classic = TRUE;
+    // SELECT opens the original party selector in trainer arenas, then
+    // returns here after the switch. It never enables a turn-based attack.
+    sArena.classic = !(gBattleTypeFlags & BATTLE_TYPE_TRAINER);
     gRealtimeArenaTelemetry.active = FALSE;
     gRealtimeArenaTelemetry.exits++;
     gRealtimeArenaTelemetry.lastExitFainted = FALSE;

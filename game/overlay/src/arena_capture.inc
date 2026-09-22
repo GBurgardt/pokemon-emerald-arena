@@ -103,7 +103,7 @@ static void CaptureInit(void)
     sCapture.shadow=CreateSprite(&sShadowTemplate,8,118,10);
     sCapture.marker=CreateSprite(&sAimTemplate,120,40,0);
     sCapture.ready=sCapture.sprite!=MAX_SPRITES&&sCapture.shadow!=MAX_SPRITES&&sCapture.marker!=MAX_SPRITES
-        && !(gBattleTypeFlags & BATTLE_TYPE_FIRST_BATTLE);
+        && !(gBattleTypeFlags & (BATTLE_TYPE_FIRST_BATTLE | BATTLE_TYPE_TRAINER));
     sCapture.previousX=sArena.bodies[1].x;sCapture.previousY=sArena.bodies[1].y;
     if(sCapture.sprite!=MAX_SPRITES)
     {

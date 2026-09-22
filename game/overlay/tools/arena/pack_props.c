@@ -53,6 +53,9 @@ static void import(const char*path)
         if(!n||n>(x1-x0)*(y1-y0)*9/10)die("Missing sprite or opaque background in atlas cell");
         w=right-left+1;h=bottom-top+1;dw=widths[i]+4;dh=heights[i]+9;
         if(dw>31)dw=31;if(dh>31)dh=31;
+        // Tall biome props must fit above the common ground-contact baseline.
+        // Otherwise unsigned ty underflows and writes before the frame buffer.
+        if(dh>16+(unsigned)heights[i]/2+1)dh=16+(unsigned)heights[i]/2+1;
         if(s==2)dh=9; // remnants are low, visibly traversable rubble
         if(dw*h>dh*w)dw=dh*w/h;else dh=dw*h/w;
         if(!dw)dw=1;if(!dh)dh=1;
@@ -61,6 +64,7 @@ static void import(const char*path)
         {
             unsigned sx=left+(x*2+1)*w/(dw*2),sy=top+(y*2+1)*h/(dh*2);
             const unsigned char*p=rgba+(sy*im.width+sx)*4;
+            if(ty+y>=32 || tx+x>=32)die("Prop exceeds native frame bounds");
             if(p[3]>=128)pixels[i][s][(ty+y)*32+tx+x]=(p[0]>>3)|((p[1]>>3)<<5)|((p[2]>>3)<<10);
         }
     }

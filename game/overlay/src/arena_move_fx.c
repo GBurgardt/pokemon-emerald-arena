@@ -2,6 +2,7 @@
 #include "arena_move_fx.h"
 #include "arena_render.h"
 #include "arena_feedback.h"
+#include "arena_terrain.h"
 #include "constants/moves.h"
 #include "sprite.h"
 #include "constants/rgb.h"
@@ -9,6 +10,11 @@
 static const u32 sActions[] = INCBIN_U32(".arena-dev/art/actions.4bpp");
 static const u32 sBolts[] = INCBIN_U32(".arena-dev/art/bolts.4bpp");
 static const u16 sPalettes[]=INCBIN_U16(".arena-dev/art/prop-palettes.gbapal");
+static const u16 sCoastPalettes[]=INCBIN_U16(".arena-dev/art/coast-prop-palettes.gbapal");
+static const u16 sCavePalettes[]=INCBIN_U16(".arena-dev/art/cave-prop-palettes.gbapal");
+static const u16 sDesertPalettes[]=INCBIN_U16(".arena-dev/art/desert-prop-palettes.gbapal");
+static const u16 sGymPalettes[]=INCBIN_U16(".arena-dev/art/gym-prop-palettes.gbapal");
+static const u16 *const sBiomePalettes[]={sPalettes,sCoastPalettes,sCavePalettes,sDesertPalettes,sGymPalettes};
 static const s16 sDirections[8][2] = {{0,256},{181,181},{256,0},{181,-181},
     {0,-256},{-181,-181},{-256,0},{-181,181}};
 static EWRAM_DATA u8 sActorFx[2] = {};
@@ -34,7 +40,7 @@ void ArenaMoveFx_Init(void)
     for(i=0;i<ARENA_BOLT_SLOTS;i++)sBoltFrames[i]=0xFFFF;
     for(i=0;i<ARENA_MOVE_PALETTES;i++)
     {
-        struct SpritePalette pal={sPalettes+i*16,TAG+i};LoadSpritePalette(&pal);
+        struct SpritePalette pal={sBiomePalettes[gArenaBiome]+i*16,TAG+i};LoadSpritePalette(&pal);
     }
     for(i=0;i<2;i++)
     {

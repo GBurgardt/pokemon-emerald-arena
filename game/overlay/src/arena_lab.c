@@ -12,6 +12,7 @@
 #include "pokedex.h"
 #include "pokemon_storage_system.h"
 #include "save.h"
+#include "sound.h"
 #include "script.h"
 #include "script_pokemon_util.h"
 #include "constants/items.h"
@@ -19,12 +20,20 @@
 #include "constants/species.h"
 #include "constants/heal_locations.h"
 #include "constants/vars.h"
+#include "constants/songs.h"
+#include "constants/trainers.h"
+#include "constants/battle_setup.h"
+#include "field_player_avatar.h"
+#include "constants/opponents.h"
 
 // Only included in the separate arena_lab.gba development build.
 // Commands are consumed in the real overworld, never halfway through a menu.
 EWRAM_DATA struct ArenaLabMailbox gArenaLabMailbox = {};
 EWRAM_DATA u32 gArenaLabCaptureAudit[10] = {};
 extern const u8 EventScript_ArenaLabBattle[];
+extern const u8 EventScript_ArenaLabTrainerReturn[];
+static EWRAM_DATA u8 sTrainerFixture[16];
+static const u8 sTrainerFixtureDefeat[] = _("Good battle!");
 
 void ArenaLab_Tick(void)
 {
@@ -179,6 +188,52 @@ void ArenaLab_Tick(void)
             }
         break;
     }
+    case 16:
+        SetPlayerAvatarTransitionFlags(PLAYER_AVATAR_FLAG_SURFING);
+        UpdatePlayerAvatarTransitionState();
+        break;
+    case 15:
+        // Disposable map fixtures use the game's normal warp. Environment
+        // detection remains production code; never write gBattleEnvironment.
+        switch (gArenaLabMailbox.species)
+        {
+        case 0: SetWarpDestination(MAP_GROUP(MAP_PETALBURG_WOODS),MAP_NUM(MAP_PETALBURG_WOODS),-1,15,20); break;
+        case 1: SetWarpDestination(MAP_GROUP(MAP_ROUTE124),MAP_NUM(MAP_ROUTE124),-1,17,10); break;
+        case 2: SetWarpDestination(MAP_GROUP(MAP_GRANITE_CAVE_1F),MAP_NUM(MAP_GRANITE_CAVE_1F),-1,36,11); break;
+        case 3: SetWarpDestination(MAP_GROUP(MAP_ROUTE111),MAP_NUM(MAP_ROUTE111),-1,20,65); break;
+        case 4: SetWarpDestination(MAP_GROUP(MAP_RUSTBORO_CITY_GYM),MAP_NUM(MAP_RUSTBORO_CITY_GYM),-1,5,12); break;
+        default: gArenaLabMailbox.result=2; break;
+        }
+        if (!gArenaLabMailbox.result) DoWarp();
+        break;
+    case 14:
+    {
+        // Start an actual trainer party via the original setup and completion
+        // callbacks. Only available in a disposable lab; never fabricates a KO.
+        u32 text=(u32)sTrainerFixtureDefeat;
+        u16 trainer=gArenaLabMailbox.species;
+        if(!trainer || trainer>=TRAINERS_COUNT)
+        {gArenaLabMailbox.result=2;break;}
+        memset(sTrainerFixture,0,sizeof(sTrainerFixture));
+        sTrainerFixture[0]=TRAINER_BATTLE_SINGLE_NO_INTRO_TEXT;
+        sTrainerFixture[1]=trainer;sTrainerFixture[2]=trainer>>8;
+        sTrainerFixture[5]=text;sTrainerFixture[6]=text>>8;
+        sTrainerFixture[7]=text>>16;sTrainerFixture[8]=text>>24;
+        // The return script is a releaseall/end sequence, copied as opcodes.
+        sTrainerFixture[9]=EventScript_ArenaLabTrainerReturn[0];
+        sTrainerFixture[10]=EventScript_ArenaLabTrainerReturn[1];
+        BattleSetup_ConfigureTrainerBattle(sTrainerFixture);
+        ScriptContext_SetupScript(EventScript_ArenaLabTrainerReturn);
+        LockPlayerFieldControls();
+        BattleSetup_StartTrainerBattle();
+        break;
+    }
+    case 13:
+        // Audio recording fixture only. No game or party mutation, no release mailbox.
+        if(gArenaLabMailbox.species != MUS_VS_RAYQUAZA && gArenaLabMailbox.species != MUS_ROUTE101)
+        {gArenaLabMailbox.result=2;break;}
+        PlayBGM(gArenaLabMailbox.species);
+        break;
     case 12:
         // Legal HM fixture in a disposable party. Native compatibility and
         // move assignment, never arbitrary battle HP/PP/XP manipulation.

@@ -1,5 +1,8 @@
 # Build
 
+This branch builds 0.7.0-preview.1. [Preview scope and checks](PREVIEW.md).
+The stable 0.6.0 notes below are historical, not coverage claims for this preview.
+
 The release is already compiled. Players do not need a GBA toolchain.
 For local setup without a browser, use Node 22+:
 
@@ -70,4 +73,4 @@ node tools/package-release.mjs /path/outside/this/repo/new-release-directory
 
 Packaging uses an explicit five-file allowlist. It refuses to overwrite an
 existing archive and emits `SHA256SUMS.txt`. The original ROM is never an input
-to packaging. Version 0.6.0 includes arena captures, 92 sprite sets and 44 move profiles.
+to ZIP packaging. This preview has 94 sprite sets and 50 move profiles.

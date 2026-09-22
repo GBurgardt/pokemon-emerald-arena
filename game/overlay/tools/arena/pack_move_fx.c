@@ -148,6 +148,19 @@ static void frame(FILE *f, int visual, int direction, int phase, int size)
             if(fabs(qx)*fabs(qy)<3 && r<7)color=2;
             if(fabs(qx)+fabs(qy)<3)color=1;
         }
+        else if(visual==19) // Psychic: rotating elliptical wave with a bright nucleus
+        {
+            double angle=phase*.785398, xx=dx*cos(angle)-dy*sin(angle), yy=dx*sin(angle)+dy*cos(angle);
+            if(fabs(hypot(xx*.7,yy*1.5)-5)<1.2)color=2;
+            if(fabs(hypot(xx*1.5,yy*.7)-5)<.7)color=1;
+            if(r<1.6)color=1;
+        }
+        else if(visual==20) // Shadow Ball: dark orb, orbiting crescent and trailing wisps
+        {
+            if(r<4.8)color=2;
+            if(r>3.4&&r<4.7&&a+b>1)color=1;
+            if(a<-4&&a>-7&&fabs(b-(phase&1?3:-3))<1)color=2;
+        }
         if (color)
         {
             if(visual==15)color+=2; // Shared fire feedback palette: yellow/red.
@@ -171,7 +184,7 @@ int main(int argc,char **argv)
     for(v=0;v<9;v++)for(d=0;d<8;d++)for(p=0;p<4;p++)frame(f,v,d,p,64);
     fclose(f);
     f=fopen(argv[2],"wb");if(!f)return 2;
-    for(v=9;v<19;v++)for(d=0;d<8;d++)for(p=0;p<4;p++)frame(f,v,d,p,16);
+    for(v=9;v<21;v++)for(d=0;d<8;d++)for(p=0;p<4;p++)frame(f,v,d,p,16);
     fclose(f);
     return 0;
 }

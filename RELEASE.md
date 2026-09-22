@@ -1,4 +1,10 @@
-# Emerald Arena 0.6.0
+# Emerald Arena 0.7.0-preview.1
+
+[Preview download, trailer and exact limits](PREVIEW.md).
+Supported single trainer battles, five matching environments and their own
+breakable objects. The stable download remains 0.6.0.
+
+## Emerald Arena 0.6.0
 
 [Download](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.6.0/Emerald-Arena-0.6.0.zip) · [Full BPS patch](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.6.0/Emerald-Arena-0.6.0-full.bps) · [Controls](PLAY.md)
 

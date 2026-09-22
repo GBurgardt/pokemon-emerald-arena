@@ -29,7 +29,7 @@ function setup(prepareRom=async()=>new Uint8Array([1,2,3]),supported=true){
 test('success reveals the actual download and next steps, then recovers from a wrong file',async()=>{
   let calls=0;const ui=setup(async()=>{calls++;return new Uint8Array(3);});
   assert.equal(ui.nodes.download.hidden,true);
-  await ui.select();assert.equal(calls,1);assert.equal(ui.nodes.ready.hidden,false);assert.equal(ui.nodes.download.download,'Emerald-Arena-0.6.0.gba');assert.equal(ui.nodes.download.focused,true);
+  await ui.select();assert.equal(calls,1);assert.equal(ui.nodes.ready.hidden,false);assert.equal(ui.nodes.download.download,'Emerald-Arena-0.7.0-preview.1.gba');assert.equal(ui.nodes.download.focused,true);
   await ui.select(2);assert.equal(calls,1);assert.equal(ui.nodes.download.hidden,true);assert.equal(ui.nodes.ready.hidden,true);assert.equal(ui.nodes.choose.disabled,false);assert.equal(ui.nodes.progress.hidden,true);assert.equal(ui.revoked.length,1);assert.match(ui.nodes.status.textContent,/not a ZIP/);
   await ui.select();assert.equal(calls,2);assert.equal(ui.nodes.ready.hidden,false);
 });

@@ -10,6 +10,11 @@
 #define TAG 0xA790
 static const u32 sProps[]=INCBIN_U32(".arena-dev/art/props.4bpp");
 static const u32 sPieces[]=INCBIN_U32(".arena-dev/art/pieces.4bpp");
+static const u32 sCoastProps[]=INCBIN_U32(".arena-dev/art/coast-props.4bpp");
+static const u32 sCaveProps[]=INCBIN_U32(".arena-dev/art/cave-props.4bpp");
+static const u32 sDesertProps[]=INCBIN_U32(".arena-dev/art/desert-props.4bpp");
+static const u32 sGymProps[]=INCBIN_U32(".arena-dev/art/gym-props.4bpp");
+static const u32 *const sBiomeProps[]={sProps,sCoastProps,sCaveProps,sDesertProps,sGymProps};
 static const u32 sBlast[]=INCBIN_U32(".arena-dev/art/blast.4bpp");
 static const u16 sPalette[16]={0,RGB(6,9,7),RGB(11,14,10),RGB(15,18,15),RGB(21,24,18),
     RGB(28,30,24),RGB(13,8,5),RGB(21,13,7),RGB(13,20,7),RGB(30,23,11),
@@ -55,7 +60,7 @@ void ArenaTerrain_Init(void)
     for(i=0;i<ARENA_OBSTACLES;i++)
     {
         const struct ArenaRect*r=&gArenaObstacles[i];
-        struct SpriteSheet sheet={(const u8*)sProps+i*3*512,512,TAG+i};
+        struct SpriteSheet sheet={(const u8*)sBiomeProps[gArenaBiome]+i*3*512,512,TAG+i};
         LoadSpriteSheet(&sheet);template.tileTag=TAG+i;
         sPropSprite[i]=CreateSprite(&template,(r->left+r->right)/2,(r->top+r->bottom)/2,8);
         if(sPropSprite[i]!=MAX_SPRITES)gSprites[sPropSprite[i]].oam.paletteNum=ArenaMoveFx_Palette(gArenaProps[i].kind);
@@ -80,7 +85,7 @@ void ArenaTerrain_Draw(bool8 paused,bool8 frozen)
         u8 frame=p->broken?2:p->hp<p->maxHp?1:0;
         if(sPropFrame[i]!=frame)
         {
-            ArenaRender_Copy((const u8*)sProps+(i*3+frame)*512,
+            ArenaRender_Copy((const u8*)sBiomeProps[gArenaBiome]+(i*3+frame)*512,
                 (u8*)OBJ_VRAM0+GetSpriteTileStartByTag(TAG+i)*32,512);
             sPropFrame[i]=frame;
         }
@@ -112,6 +117,7 @@ void ArenaTerrain_Draw(bool8 paused,bool8 frozen)
         s->x=f->x/256;s->y=(f->y-f->z)/256;
         s->invisible=paused||!f->life||s->y<20||(f->life<12&&(f->life&2));
         s->oam.tileNum=GetSpriteTileStartByTag(TAG+ARENA_OBSTACLES)+f->kind*4+((f->age/4)&3);
+        s->oam.paletteNum=ArenaMoveFx_Palette(f->kind);
     }
     if(sSeenBroken!=gArenaPhysicsTelemetry.broken)
     {sSeenBroken=gArenaPhysicsTelemetry.broken;PlaySE(SE_M_ROCK_THROW);}

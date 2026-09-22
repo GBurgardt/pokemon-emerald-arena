@@ -3,7 +3,7 @@
 - [pret/pokeemerald](https://github.com/pret/pokeemerald):
   Pokémon Emerald decompilation and reconstruction.
 - [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab):
-  animation sources, metadata and individual credits for the 92 Pokémon.
+  animation sources, metadata and individual credits for the 94 Pokémon.
   Pin: `d25607ff4746957df10bdb78db090887cd94f1f8`.
   The installer manifest preserves each species' credit file. The original
   sheets credit CHUNSOFT and individual PMDCollab contributors. The web installer downloads and converts these locally.

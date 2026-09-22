@@ -19,6 +19,16 @@ build_background() {
     cc -std=c11 -O2 -Wall -Wextra -Werror -I/opt/homebrew/include tools/arena/pack_background.c -L/opt/homebrew/lib -lpng -o .arena-dev/art/pack-background
     .arena-dev/art/pack-background graphics/arena/forest-clearing-v2-clean.png .arena-dev/art/forest.8bpp .arena-dev/art/forest.gbapal .arena-dev/art/forest.bin
   fi
+  for biome in coast cave desert gym; do
+    if [[ ! -f .arena-dev/art/$biome-props.4bpp || graphics/arena/props-$biome-v2.png -nt .arena-dev/art/$biome-props.4bpp || tools/arena/pack_props.c -nt .arena-dev/art/$biome-props.4bpp ]]; then
+      cc -std=c11 -O2 -Wall -Wextra -Werror -I/opt/homebrew/include tools/arena/pack_props.c -L/opt/homebrew/lib -lpng -o .arena-dev/art/pack-props
+      .arena-dev/art/pack-props graphics/arena/props-$biome-v2.png .arena-dev/art/$biome-props.4bpp .arena-dev/art/$biome-pieces.4bpp .arena-dev/art/$biome-blast.4bpp .arena-dev/art/$biome-prop-palettes.gbapal
+    fi
+    if [[ ! -f .arena-dev/art/$biome.8bpp || graphics/arena/biome-$biome-v1.png -nt .arena-dev/art/$biome.8bpp || tools/arena/pack_background.c -nt .arena-dev/art/$biome.8bpp ]]; then
+      cc -std=c11 -O2 -Wall -Wextra -Werror -I/opt/homebrew/include tools/arena/pack_background.c -L/opt/homebrew/lib -lpng -o .arena-dev/art/pack-background
+      .arena-dev/art/pack-background graphics/arena/biome-$biome-v1.png .arena-dev/art/$biome.8bpp .arena-dev/art/$biome.gbapal .arena-dev/art/$biome.bin
+    fi
+  done
 }
 case "${1:-help}" in
   assets)

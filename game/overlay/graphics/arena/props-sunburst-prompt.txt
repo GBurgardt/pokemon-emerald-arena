@@ -1,0 +1,8 @@
+Use case: background-extraction
+Asset type: production sprite atlas for a native 240x160 GBA forest arena.
+Image 1 is the EDIT TARGET: a 5-column, 3-row atlas of fifteen forest props with a WRONG baked gray checkerboard background.
+Image 2 is the STYLE REFERENCE ONLY: the actual approved game forest. Preserve its lighting, moss colors, grass texture, and gently elevated camera angle in all sprites. Do not output the forest itself.
+Primary request: preserve the beautiful atlas artwork from Image 1 and remove ONLY the fake checkerboard, replacing it with genuine PNG alpha transparency. Preserve all fifteen objects, their proportions, silhouettes, texture, placement, and the equal 5x3 grid. Retain attached tufts of grass, roots, moss, and small contact shadows so each object appears to grow naturally from the forest floor in Image 2. No large oval pedestals, no separate tile backgrounds.
+Columns left to right: moss-covered natural boulder; weathered mossy wooden crate; leafy forest shrub with tiny white flowers; cyan crystal growing from mossy rock; amber seed pod with wooden ribs and green crown.
+Rows top to bottom: intact; visibly cracked/damaged version of the same object; low scattered broken remnants of that same object. Each column must look like a consistent three-state destruction animation. Broken remnants must clearly be flat and walkable.
+Constraints: real transparent alpha everywhere outside object silhouettes, including between leaves and pieces. No painted checkerboard, no white or gray matte, no grid lines, no labels, no text, no logos. Keep crisp detailed pixel-art texture. No additional objects or effects. Preserve the 5x3 atlas organization and generous transparent separation. Output PNG, landscape 1536x1024.

@@ -1,5 +1,16 @@
 # Real gameplay
 
+## Trainer battles and environments preview
+
+[Watch / download the 46-second trailer](emerald-arena-trainer-biomes.mp4).
+Five environments with their own breakable objects and supported trainer
+battles. Recorded from the development build with prepared matchups, including
+Drake in Granite Cave. This is not a continuous story playthrough.
+Native gameplay and sound effects; continuous Emerald music added in editing.
+[Scope and verification](../PREVIEW.md).
+
+MP4 SHA-256: `b9858ae1f8c509654799003f8f0533894e1818e0e031f61a8b03efadec4e7f81`.
+
 ## Poké Balls 0.5.0
 
 [Watch / download with sound](emerald-arena-pokeballs.mp4)
