@@ -11,7 +11,7 @@ for(const file of execFileSync('git',['ls-files','-z'],{encoding:'utf8'}).split(
   }
 }
 for(const [file,hash] of Object.entries(allowed)) {
-  if(!/^game\/overlay\/graphics\/arena\/(psychic|sendout|elements|flame|double-team|warp-toss|dig-fly|cover-smoke)\/[^/]+\.(4bpp|gbapal)$/.test(file))throw Error('Invalid effect path');
+  if(!/^game\/overlay\/graphics\/arena\/(psychic|sendout|elements|flame|double-team|warp-toss|dig-fly|cover-smoke|barriers|signatures150|signatures150-extra)\/[^/]+\.(4bpp|gbapal)$/.test(file))throw Error('Invalid effect path');
   if(createHash('sha256').update(readFileSync(file)).digest('hex')!==hash)throw Error('Missing or changed effect: '+file);
 }
 console.log('Public file allowlist passed. No ROMs or saves.');
