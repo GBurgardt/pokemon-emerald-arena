@@ -42,11 +42,21 @@ test('release rejects wrong ROM before any network access',async()=>{
   assert.equal(fetched,false);
   assert.equal(await digest(Buffer.from(patch,'base64')),manifest.patch_sha256);
   assert.equal(manifest.species.length,150);
-  assert.equal(manifest.version,'0.10.0');
-  assert.equal(manifest.target_sha256,'0809eb6c377cb848c456162352f2f97bbba5ec8d91807430b7373646718fc511');
+  assert.equal(manifest.version,'0.10.1');
+  assert.equal(manifest.target_sha256,'64d4aed4beb4511483dfe9f655ef9f243fb188d74649a7d4af613789e144a8ad');
   assert.equal(manifest.target_size,33554432);
   assert.ok(manifest.species.every(s=>s.sprite_format==='tile-dictionary-v1'));
-  assert.deepEqual(manifest.species.filter(s=>s.animations.some(a=>a.scale===2)).map(s=>s.name).sort(),['ARTICUNO','GYARADOS','HO_OH','LUGIA','RAYQUAZA','SALAMENCE','WAILORD','ZAPDOS']);
+  assert.deepEqual(manifest.species.filter(s=>s.animations.some(a=>a.scale===2)).map(s=>s.name).sort(),['ARTICUNO','GYARADOS','RAYQUAZA','WAILORD','ZAPDOS']);
+});
+test('tight frame registration preserves original pixels and explicit small ratios',()=>{
+  const width=100,height=100,rgba=new Uint8Array(width*height*8*4);
+  for(let d=0;d<8;d++)for(let y=10;y<50;y++)for(let x=15;x<65;x++)rgba.set([248,0,0,255],((d*height+y)*width+x)*4);
+  const animation={sha256:'red',width,height,frames:1,offset:32,frame_fit:[1,1]};
+  const mon={palette_offset:0,animations:[animation]};const sheets=new Map([['red',{width,height:height*8,rgba}]]);
+  const pixels=bytes=>bytes.reduce((n,v)=>n+Number((v&15)!==0)+Number((v>>4)!==0),0);
+  assert.equal(pixels(packSpriteSet(mon,sheets)[0].bytes),50*40*8);
+  animation.frame_fit=[3,4];assert.equal(pixels(packSpriteSet(mon,sheets)[0].bytes),38*30*8);
+  animation.frame_fit=[2,1];assert.throws(()=>packSpriteSet(mon,sheets),/fit ratio/);
 });
 test('tile dictionary preserves every byte and first-occurrence order',()=>{
   const raw=Uint8Array.from({length:4096},(_,i)=>Math.floor(i/32)%3);

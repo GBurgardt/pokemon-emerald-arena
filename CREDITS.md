@@ -18,7 +18,9 @@
   be applied without a separate animation download. Original sprite sheets are
   not bundled. Conversion includes frame selection, palette reduction and GBA
   tile packing. Large source sheets use explicit 2× sampling where required;
-  Lugia, Ho-Oh and Salamence receive presentation scaling in the arena.
+  Lugia and Ho-Oh use explicit 3/4 and 7/8 import ratios; Salamence keeps its
+  original pixels. Transparent frame margins are removed without cropping
+  opaque artwork. None of these three is enlarged at runtime.
   Pose aliases and sampling are explicit in the [catalog](game/overlay/tools/arena/roster.json).
   These PMD resources remain their owners' material, not
   original art by this project or assets licensed by this project's code license.

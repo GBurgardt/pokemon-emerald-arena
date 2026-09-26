@@ -1,3 +1,17 @@
+# Emerald Arena 0.10.1
+
+[Download](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.1/Emerald-Arena-0.10.1.zip) · [Full BPS patch](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.1/Emerald-Arena-0.10.1-full.bps) · [Re-recorded gameplay](media/emerald-arena-150.mp4)
+
+Fixes the blocky Lugia, Ho-Oh and Salamence sprites from 0.10.0. They were
+reduced by half during import and enlarged again at runtime, losing detail.
+Salamence now uses original-resolution pixels. Lugia uses 3/4 and Ho-Oh 7/8
+of the original size, with transparent margins removed per frame and no
+runtime enlargement. No opaque source area is cropped. Other sprites remain unchanged.
+
+Source artwork and credits are unchanged. All 54,216 frames pass the decoder;
+native combat, trainer encounters and capture/save regressions pass.
+ROM SHA-256: `64d4aed4beb4511483dfe9f655ef9f243fb188d74649a7d4af613789e144a8ad`.
+
 # Emerald Arena 0.10.0
 
 [Download](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.0/Emerald-Arena-0.10.0.zip) · [Full BPS patch](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.0/Emerald-Arena-0.10.0-full.bps) · [Gameplay](media/emerald-arena-150.mp4)

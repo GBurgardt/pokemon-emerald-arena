@@ -67,14 +67,15 @@ int main(int argc, char **argv)
 {
     struct Sheet sheets[8] = {0};
     unsigned char pal_bytes[32];
-    int count, i, dir, frame, x, y, scale, ox=0, oy=0;
+    int count, i, dir, frame, x, y, scale, ox=0, oy=0, fitn=0, fitd=0;
     if (argc < 8 || (argc-3)%5 || (argc-3)/5 > 8) fail("palette scale [output png width height frames]...");
     scale=atoi(argv[2]);if(scale!=1&&scale!=2)fail("Scale must be 1 or 2");
     // Explicit, constant registration offset across every pose/direction.
     // This fits asymmetrically padded originals without shrinking or cropping.
     if(strchr(argv[2],','))
-        if(sscanf(argv[2],"%d,%d,%d",&scale,&ox,&oy)!=3 || abs(ox)>16 || abs(oy)>16)
+        if(sscanf(argv[2],"%d,%d,%d,%d,%d",&scale,&ox,&oy,&fitn,&fitd)<3 || abs(ox)>16 || abs(oy)>16)
             fail("Invalid source registration offset");
+    if(fitn && (fitn>fitd || fitd>8 || fitn<1))fail("Invalid fit ratio");
     count = (argc-3)/5;
     for (i = 0; i < count; ++i)
     {
@@ -99,6 +100,28 @@ int main(int argc, char **argv)
         if (!tiles) fail("Allocation failed");
         for (dir = 0; dir < 8; ++dir)
             for (frame = 0; frame < s->frames; ++frame)
+            {
+                if(fitn)
+                {
+                    int left=s->fw,top=s->fh,right=0,bottom=0,w,h,dx,dy;
+                    for(y=0;y<s->fh;y++)for(x=0;x<s->fw;x++)
+                        if(s->rgba[((dir*s->fh+y)*s->image.width+frame*s->fw+x)*4+3])
+                        {if(x<left)left=x;if(y<top)top=y;if(x+1>right)right=x+1;if(y+1>bottom)bottom=y+1;}
+                    if(right<=left||bottom<=top)continue;
+                    w=((right-left)*fitn+fitd-1)/fitd;h=((bottom-top)*fitn+fitd-1)/fitd;
+                    if(w>64||h>64)fail("Fitted frame exceeds OBJ; refusing to crop");
+                    // Remove transparent padding, not artwork. Fixed ratio for
+                    // the whole species; no frame-dependent size changes.
+                    for(dy=0;dy<h;dy++)for(dx=0;dx<w;dx++)
+                    {
+                        int sx=left+dx*fitd/fitn,sy=top+dy*fitd/fitn;
+                        int tx=32-w/2+dx,ty=64-h+dy;
+                        unsigned index=color_index(s->rgba+((dir*s->fh+sy)*s->image.width+frame*s->fw+sx)*4);
+                        size_t offset=(dir*s->frames+frame)*2048+(ty/8*8+tx/8)*32+ty%8*4+tx%8/2;
+                        tiles[offset]|=index<<((tx&1)*4);
+                    }
+                    continue;
+                }
                 for (y = 0; y < s->fh; ++y)
                     for (x = 0; x < s->fw; ++x)
                     {
@@ -112,6 +135,7 @@ int main(int argc, char **argv)
                         offset = (dir*s->frames+frame)*2048 + (ty/8*8+tx/8)*32 + ty%8*4 + tx%8/2;
                         tiles[offset] |= index << ((tx&1)*4);
                     }
+            }
         write_dictionary(s->output,tiles,size);
         free(tiles); free(s->rgba); png_image_free(&s->image);
     }

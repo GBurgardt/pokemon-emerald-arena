@@ -1,10 +1,10 @@
 # Real gameplay
 
-## 150 Pokémon · 0.10.0
+## 150 Pokémon · 0.10.1
 
 [Watch / download with sound](emerald-arena-150.mp4)
 
-53 seconds: walking up to Drake, trainer send-outs, Lugia's Aeroblast,
+47 seconds: walking up to Drake, trainer send-outs, Lugia's Aeroblast,
 Ho-Oh's Sacred Fire, Salamence's Dragon Claw, Raikou's Shock Wave,
 Golem's Rollout and Starmie's Light Screen followed by Hydro Pump.
 
@@ -13,6 +13,8 @@ were prepared for filming; combat damage, PP and enemy AI run normally.
 Dialogue is shortened and separate battles are cut together. Continuous
 Emerald music is mixed with game effects. No added combat graphics.
 This is a curated showcase, not an uncut adventure or hardware benchmark.
+Re-recorded after fixing the large-sprite import. Combat inputs return to open
+space instead of pushing into a corner between attacks.
 
 ## Poké Balls 0.5.0
 

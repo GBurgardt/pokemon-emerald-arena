@@ -29,7 +29,7 @@ function setup(prepareRom=async()=>new Uint8Array([1,2,3]),supported=true){
 test('success reveals the actual download and next steps, then recovers from a wrong file',async()=>{
   let calls=0;const ui=setup(async()=>{calls++;return new Uint8Array(3);});
   assert.equal(ui.nodes.download.hidden,true);
-  await ui.select();assert.equal(calls,1);assert.equal(ui.nodes.ready.hidden,false);assert.equal(ui.nodes.download.download,'Emerald-Arena-0.10.0.gba');assert.equal(ui.nodes.download.focused,true);
+  await ui.select();assert.equal(calls,1);assert.equal(ui.nodes.ready.hidden,false);assert.equal(ui.nodes.download.download,'Emerald-Arena-0.10.1.gba');assert.equal(ui.nodes.download.focused,true);
   await ui.select(2);assert.equal(calls,1);assert.equal(ui.nodes.download.hidden,true);assert.equal(ui.nodes.ready.hidden,true);assert.equal(ui.nodes.choose.disabled,false);assert.equal(ui.nodes.progress.hidden,true);assert.equal(ui.revoked.length,1);assert.match(ui.nodes.status.textContent,/not a ZIP/);
   await ui.select();assert.equal(calls,2);assert.equal(ui.nodes.ready.hidden,false);
 });
@@ -43,7 +43,7 @@ test('unsupported browser gets an actionable message',()=>{
 test('README puts a direct ZIP before gameplay and never calls a video Play',async()=>{
   const md=await readFile(new URL('README.md',root),'utf8');
   assert.ok(md.indexOf('Download Emerald Arena')<md.indexOf('## Watch gameplay'));
-  assert.match(md,/releases\/download\/v0\.10\.0\/Emerald-Arena-0\.10\.0\.zip/);
+  assert.match(md,/releases\/download\/v0\.10\.1\/Emerald-Arena-0\.10\.1\.zip/);
   assert.doesNotMatch(md,/Play & watch|chatgpt\.site/);
 });
 test('README shows the current gameplay before setup and links longer footage',async()=>{
@@ -51,7 +51,7 @@ test('README shows the current gameplay before setup and links longer footage',a
   assert.equal((md.match(/!\[/g)||[]).length,1);
   assert.ok(md.indexOf('media/emerald-arena-150.gif')<md.indexOf('## Start playing'));
   assert.match(md,/Full gameplay · 2:26 with sound/);
-  assert.match(md,/New in 0.10.0/);
+  assert.match(md,/New in 0.10.1/);
   assert.match(md,/PLAY.md#controls/);
   assert.match(md,/PLAY.md#current-scope/);
   const guide=await readFile(new URL('PLAY.md',root),'utf8');

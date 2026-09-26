@@ -84,7 +84,7 @@ def main():
             animations.append(dict(name=motion, actual=actual, png=str(png),
                 width=int(node.findtext('FrameWidth')), height=int(node.findtext('FrameHeight')),
                 durations=durations, hit_frame=int(node.findtext('HitFrame', str(len(durations)//2) if motion == 'Attack' else '0')),
-                scale=scale,frame_offset=mon.get('frame_offset',[0,0]),sha256=hashlib.sha256(png.read_bytes()).hexdigest()))
+                scale=scale,frame_offset=mon.get('frame_offset',[0,0]),frame_fit=mon.get('frame_fit'),sha256=hashlib.sha256(png.read_bytes()).hexdigest()))
         print('Fetched/cached ' + species + ': 5 poses, 8 directions', flush=True)
         return dict(dex=dex,species=species,credits=credits.read_text(),animations=animations,
                     fixture_level=mon['level'], xml_sha256=hashlib.sha256(xml.read_bytes()).hexdigest(),
@@ -111,6 +111,8 @@ def main():
         offset=a0['frame_offset']
         assert len(offset)==2 and all(isinstance(x,int) and abs(x)<=16 for x in offset)
         argv = [str(packer), str(palette), ','.join(map(str,[a0['scale'],*offset]))]
+        if a0['frame_fit']:
+            argv[2]+=','+','.join(map(str,a0['frame_fit']))
         for a in bundle['animations']:
             a['binary'] = str(OUT / (dex + '-' + a['name'] + '.4bpp'))
             argv += [a['binary'], a['png'], str(a['width']), str(a['height']), str(len(a['durations']))]

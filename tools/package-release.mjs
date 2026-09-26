@@ -9,7 +9,7 @@ if(!process.argv[2])throw new Error('Usage: node tools/package-release.mjs /priv
 const out=path.resolve(process.argv[2]);
 if(out===root||out.startsWith(root+path.sep))throw new Error('Keep generated archives outside the source tree.');
 await mkdir(out,{recursive:true});
-const name='Emerald-Arena-0.10.0.zip',zip=path.join(out,name);
+const name='Emerald-Arena-0.10.1.zip',zip=path.join(out,name);
 try{await access(zip);throw new Error('Archive exists. Use a new output directory.');}catch(e){if(e.code!=='ENOENT')throw e;}
 execFileSync(process.execPath,['tools/build-installer.mjs','--check'],{cwd:root,stdio:'inherit'});
 execFileSync('zip',['-X','-q',zip,'Prepare-Emerald-Arena.html','installer.mjs','install.mjs','payload.json','README.md'],{cwd:path.join(root,'release'),stdio:'inherit'});

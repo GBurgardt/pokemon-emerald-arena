@@ -318,8 +318,8 @@ static s32 Abs(s32 n) { return n < 0 ? -n : n; }
 static s32 Clamp(s32 n, s32 lo, s32 hi) { return n < lo ? lo : n > hi ? hi : n; }
 static u16 MonVisualScale(u8 side)
 {
-    u16 s=gBattleMons[side].species;
-    return s==SPECIES_SALAMENCE?512:s==SPECIES_LUGIA||s==SPECIES_HO_OH?384:256;
+    (void)side;
+    return 256;
 }
 static void MonVisualScaleApply(void)
 {

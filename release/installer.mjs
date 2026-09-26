@@ -150,6 +150,27 @@ export function packSpriteSet(species, sheets) {
     if(![1,2].includes(scale)||a.width%scale||a.height%scale)fail('Invalid sprite scale.');
     const offset=a.frame_offset??[0,0];
     if(!Array.isArray(offset)||offset.length!==2||!offset.every(v=>Number.isInteger(v)&&Math.abs(v)<=16))fail('Invalid sprite registration.');
+    const fit=a.frame_fit;
+    if(fit && (!Array.isArray(fit)||fit.length!==2||!fit.every(Number.isInteger)||fit[0]<1||fit[0]>fit[1]||fit[1]>8))fail('Invalid sprite fit ratio.');
+    if(fit) {
+      const [n,q]=fit;
+      for(let d=0;d<8;d++)for(let f=0;f<a.frames;f++) {
+        let left=a.width,top=a.height,right=0,bottom=0;
+        for(let y=0;y<a.height;y++)for(let x=0;x<a.width;x++)if(s.rgba[((d*a.height+y)*s.width+f*a.width+x)*4+3]) {
+          left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x+1);bottom=Math.max(bottom,y+1);
+        }
+        if(right<=left||bottom<=top)continue;
+        const w=Math.ceil((right-left)*n/q),h=Math.ceil((bottom-top)*n/q);
+        if(w>64||h>64)fail('Fitted sprite cropping is not allowed.');
+        for(let y=0;y<h;y++)for(let x=0;x<w;x++) {
+          const sx=left+Math.floor(x*q/n),sy=top+Math.floor(y*q/n);
+          const ci=index(s.rgba,((d*a.height+sy)*s.width+f*a.width+sx)*4);
+          const tx=32-Math.floor(w/2)+x,ty=64-h+y;
+          const off=(d*a.frames+f)*2048+(Math.floor(ty/8)*8+Math.floor(tx/8))*32+(ty%8)*4+Math.floor(tx%8/2);
+          tiles[off]|=ci<<((tx&1)*4);
+        }
+      }
+    } else {
     for(let d=0;d<8;d++)for(let f=0;f<a.frames;f++)for(let y=0;y<a.height;y++)for(let x=0;x<a.width;x++) {
       const pi=((d*a.height+y)*s.width+f*a.width+x)*4,ci=index(s.rgba,pi);
       if(!ci)continue;
@@ -158,6 +179,7 @@ export function packSpriteSet(species, sheets) {
       if(x%scale||y%scale)continue;
       const off=(d*a.frames+f)*2048+(Math.floor(ty/8)*8+Math.floor(tx/8))*32+(ty%8)*4+Math.floor(tx%8/2);
       tiles[off]|=ci<<((tx&1)*4);
+    }
     }
     if(species.sprite_format && species.sprite_format!=='tile-dictionary-v1')fail('Unsupported sprite format.');
     chunks.push({offset:a.offset,bytes:species.sprite_format?encodeSpriteTiles(tiles):tiles,sha256:a.compiled_sha256});

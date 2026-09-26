@@ -1183,7 +1183,7 @@
     "poses": {
       "SpAttack": "Shoot"
     },
-    "scale": 2
+    "frame_fit": [3, 4]
   },
   {
     "dex": "0250",
@@ -1192,7 +1192,7 @@
     "poses": {
       "SpAttack": "Shoot"
     },
-    "scale": 2
+    "frame_fit": [7, 8]
   },
   {
     "dex": "0373",
@@ -1201,7 +1201,7 @@
     "poses": {
       "SpAttack": "Shoot"
     },
-    "scale": 2
+    "frame_fit": [1, 1]
   },
   {
     "dex": "0376",
