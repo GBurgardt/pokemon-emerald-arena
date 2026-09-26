@@ -1,4 +1,32 @@
-# Unreleased
+# Emerald Arena 0.10.0
+
+[Download](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.0/Emerald-Arena-0.10.0.zip) · [Full BPS patch](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.0/Emerald-Arena-0.10.0-full.bps) · [Gameplay](media/emerald-arena-150.mp4)
+
+- 50 more animated Pokémon, bringing the roster to 150. Larger Lugia, Ho-Oh and Salamence; pose-aware ground alignment across the roster.
+- New effects for Aeroblast, Sacred Fire, Dragon Claw, Shock Wave and more.
+- Reflect and Light Screen protect against physical and special damage for ten active seconds. Menus pause their timers; native damage rules still apply.
+- Both Pokémon levels are visible. Wild battles no longer show a second trainer; May and Brendan use their matching sprites.
+- Didier Lopes' [Rollout PR #4](https://github.com/GBurgardt/pokemon-emerald-arena/pull/4) is merged, retaining his original commits. Integration fixes a tile-renderer boundary read and allocates its graphics only when needed.
+
+Back up your in-game save before updating. Do not reuse emulator save states.
+Unsupported battles still fall back to classic combat. [Scope and limits](PLAY.md#current-scope).
+
+### Verification
+
+All 54,216 animation frames across 150 Pokémon decode correctly. Native combat,
+capture, trainer progression, five environments, move picker and result-flow
+regressions passed. Barrier tests cover PP, independent expiry, pause and native
+damage reduction: the same physical hit changed from 20 to 11 with Reflect,
+and a special hit from 50 to 27 with Light Screen. Shipping cold boot and combat
+passed without the lab mailbox. Not full-adventure or physical-GBA validation.
+
+Release ROM SHA-256: `0809eb6c377cb848c456162352f2f97bbba5ec8d91807430b7373646718fc511`.
+
+The clean public-source build, installer and full BPS patch reconstruct that
+same file byte for byte. Installer and player-journey checks pass, as do the
+21 Substitute/Smokescreen and 16 Ghost integration checks.
+
+### Rollout
 
 - Rollout joins the arena as a real-time move: the user tumbles in place,
   slowly at first, then rolls in the direction it is facing, gaining speed and

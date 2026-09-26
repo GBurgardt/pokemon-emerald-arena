@@ -2,7 +2,7 @@
 
 Pokémon Emerald with real time battles. Inside the original GBA game.
 
-[**Download Emerald Arena**](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.9.0/Emerald-Arena-0.9.0.zip) · [Installation guide](PLAY.md)
+[**Download Emerald Arena**](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.0/Emerald-Arena-0.10.0.zip) · [Installation guide](PLAY.md)
 
 [**Follow development on Twitter / X**](https://x.com/germanburgardt) for new previews, progress and updates.
 
@@ -10,15 +10,15 @@ Pokémon Emerald with real time battles. Inside the original GBA game.
 
 ## Watch gameplay
 
-[![New battle gameplay: Blastoise versus Eevee, attacks, dodges and the move picker](media/emerald-arena-combat-update.gif)](https://github.com/GBurgardt/pokemon-emerald-arena/raw/refs/heads/main/media/emerald-arena-combat-update.mp4)
+[![Lugia and Ho-Oh in real time battles](media/emerald-arena-150.gif)](https://github.com/GBurgardt/pokemon-emerald-arena/raw/refs/heads/main/media/emerald-arena-150.mp4)
 
-[New battles · 16 seconds with sound](media/emerald-arena-combat-update.mp4) · [Full gameplay · 2:26 with sound](https://github.com/GBurgardt/pokemon-emerald-arena/raw/refs/heads/main/media/emerald-arena-full-gameplay.mp4)
+[New battles · 53 seconds with sound](media/emerald-arena-150.mp4) · [Full gameplay · 2:26 with sound](https://github.com/GBurgardt/pokemon-emerald-arena/raw/refs/heads/main/media/emerald-arena-full-gameplay.mp4)
 
 [Playing on an AYN Thor · 16 seconds](https://github.com/GBurgardt/pokemon-emerald-arena/raw/refs/heads/main/media/emerald-arena-ayn-thor.mp4)
 
-New in 0.9.0: Substitute, Smokescreen and Ghost types that phase through walls and objects.
-100 animated Pokémon, now including Gengar and Shelgon.
-[Watch Substitute and Smokescreen](media/emerald-arena-cover-smoke.mp4).
+New in 0.10.0: 50 more animated Pokémon, Rollout, Reflect and Light Screen.
+150 Pokémon, with larger Lugia, Ho-Oh and Salamence and better ground alignment.
+[Watch the new gameplay](media/emerald-arena-150.mp4).
 
 Dig, Fly, Teleport, Seismic Toss, Double Team and elemental terrain are still included. [Watch the four new moves · 46 seconds](media/emerald-arena-four-moves.mp4).
 Seismic Toss was contributed by [Didier Lopes](https://github.com/DidierRLopes) in [PR #1](https://github.com/GBurgardt/pokemon-emerald-arena/pull/1).

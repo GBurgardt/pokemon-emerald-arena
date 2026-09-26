@@ -41,12 +41,12 @@ test('release rejects wrong ROM before any network access',async()=>{
   await assert.rejects(prepareRom(new Uint8Array(10),manifest,Buffer.from(patch,'base64'),()=>{},async()=>{fetched=true;}));
   assert.equal(fetched,false);
   assert.equal(await digest(Buffer.from(patch,'base64')),manifest.patch_sha256);
-  assert.equal(manifest.species.length,100);
-  assert.equal(manifest.version,'0.9.0');
-  assert.equal(manifest.target_sha256,'8af469970aaf60fb711dd22caac2af80a238ce0e48859969f22e22152fd05226');
+  assert.equal(manifest.species.length,150);
+  assert.equal(manifest.version,'0.10.0');
+  assert.equal(manifest.target_sha256,'0809eb6c377cb848c456162352f2f97bbba5ec8d91807430b7373646718fc511');
   assert.equal(manifest.target_size,33554432);
   assert.ok(manifest.species.every(s=>s.sprite_format==='tile-dictionary-v1'));
-  assert.deepEqual(manifest.species.filter(s=>s.animations.some(a=>a.scale===2)).map(s=>s.name).sort(),['ARTICUNO','GYARADOS','RAYQUAZA','WAILORD','ZAPDOS']);
+  assert.deepEqual(manifest.species.filter(s=>s.animations.some(a=>a.scale===2)).map(s=>s.name).sort(),['ARTICUNO','GYARADOS','HO_OH','LUGIA','RAYQUAZA','SALAMENCE','WAILORD','ZAPDOS']);
 });
 test('tile dictionary preserves every byte and first-occurrence order',()=>{
   const raw=Uint8Array.from({length:4096},(_,i)=>Math.floor(i/32)%3);

@@ -139,6 +139,13 @@ static EWRAM_DATA u8 sFlameReach[2]={},sFlameElementMask[2]={};
 EWRAM_DATA u32 gArenaFlameTelemetry[5]={};
 static bool8 PsychicBusy(u8 side);
 static bool8 PsychicStart(u8 side,s32 targetX,s32 targetY);
+static bool8 BattleHasPsychic(void)
+{
+    u32 side,slot;
+    for(side=0;side<2;side++)for(slot=0;slot<MAX_MON_MOVES;slot++)
+        if(gBattleMons[side].moves[slot]==MOVE_PSYCHIC)return TRUE;
+    return FALSE;
+}
 static void PsychicReset(void);
 static void TickPsychic(void);
 static void DrawPsychicAuras(void);
@@ -309,6 +316,24 @@ static void AiChooseGoal(void);
 
 static s32 Abs(s32 n) { return n < 0 ? -n : n; }
 static s32 Clamp(s32 n, s32 lo, s32 hi) { return n < lo ? lo : n > hi ? hi : n; }
+static u16 MonVisualScale(u8 side)
+{
+    u16 s=gBattleMons[side].species;
+    return s==SPECIES_SALAMENCE?512:s==SPECIES_LUGIA||s==SPECIES_HO_OH?384:256;
+}
+static void MonVisualScaleApply(void)
+{
+    u32 side;
+    for(side=0;side<2;side++)if(sArena.bodies[side].art&&MonVisualScale(side)!=256)
+    {
+        struct Sprite *p=&gSprites[sArena.bodies[side].sprite];
+        struct OamMatrix *m=&gOamMatrices[p->oam.matrixNum];
+        u16 scale=MonVisualScale(side);
+        p->oam.affineMode=ST_OAM_AFFINE_DOUBLE;
+        CalcCenterToCornerVec(p,p->oam.shape,p->oam.size,p->oam.affineMode);
+        SetOamMatrix(p->oam.matrixNum,m->a*256/scale,m->b*256/scale,m->c*256/scale,m->d*256/scale);
+    }
+}
 
 // Ghost types phase through the arena walls and through the objects inside
 // it: leaving through one edge brings them in from the opposite one, and rocks,
@@ -386,6 +411,7 @@ static void RolloutEnd(struct ArenaBody *body)
 #include "arena_rollout.inc"
 #include "arena_double_team.inc"
 #include "arena_cover.inc"
+#include "arena_barrier.inc"
 
 static bool8 SupportedMove(u16 move)
 {
@@ -457,9 +483,21 @@ static bool8 SupportedBattler(u8 side)
     case ABILITY_AIR_LOCK: // Weather encounters are still excluded by Eligible().
     case ABILITY_SAND_VEIL:
     case ABILITY_CLOUD_NINE:
+    case ABILITY_CLEAR_BODY: // Native ChangeStatBuffs retains rejection.
+    case ABILITY_WHITE_SMOKE:
+    case ABILITY_LIMBER: // Paralysis moves still unsupported.
+    case ABILITY_OBLIVIOUS: // Infatuation moves still unsupported.
+    case ABILITY_OWN_TEMPO: // Confusion moves still unsupported.
+    case ABILITY_VITAL_SPIRIT: // Sleep moves still unsupported.
+    case ABILITY_MAGMA_ARMOR: // Freeze moves still unsupported.
+    case ABILITY_FLASH_FIRE:
+    case ABILITY_WATER_ABSORB:
         return TRUE;
     case ABILITY_STATIC:
     case ABILITY_EFFECT_SPORE:
+    case ABILITY_POISON_POINT:
+    case ABILITY_CUTE_CHARM:
+    case ABILITY_FLAME_BODY:
         // Do not silently suppress a contact ability. These can enter only if
         // the opposing arena moves cannot trigger it; otherwise the complete
         // encounter stays in native classic mode, including its status rolls.
@@ -712,6 +750,8 @@ static u8 OpponentGraphics(void)
     case TRAINER_PIC_LEADER_JUAN: return OBJ_EVENT_GFX_JUAN;
     case TRAINER_PIC_CHAMPION_WALLACE: return OBJ_EVENT_GFX_WALLACE;
     case TRAINER_PIC_STEVEN: return OBJ_EVENT_GFX_STEVEN;
+    case TRAINER_PIC_MAY: return OBJ_EVENT_GFX_MAY_NORMAL;
+    case TRAINER_PIC_BRENDAN: return OBJ_EVENT_GFX_BRENDAN_NORMAL;
     default: return OBJ_EVENT_GFX_BOY_1;
     }
 }
@@ -720,7 +760,7 @@ static void CreateSidelineTrainers(void)
 {
     u32 i;
     memset(gArenaTrainerTelemetry, MAX_SPRITES, sizeof(gArenaTrainerTelemetry));
-    for (i = 0; i < 2; i++)
+    for (i = 0; i < ((gBattleTypeFlags & BATTLE_TYPE_TRAINER)?2:1); i++)
     {
         bool8 female = (gSaveBlock2Ptr->playerGender != 0) ^ (i != 0);
         u8 graphicsId = i && (gBattleTypeFlags & BATTLE_TYPE_TRAINER) ? OpponentGraphics()
@@ -779,6 +819,7 @@ static void CB2_ArenaInit(void)
     ResetSpriteData();
     DecoyReset();
     CoverReset();
+    BarrierReset();
     SpecialReset();
     ArenaRender_Reset();
     FreeAllSpritePalettes();
@@ -825,7 +866,7 @@ static void CB2_ArenaInit(void)
     memset(sFlameElementMask,0,sizeof(sFlameElementMask));
     memset(gArenaFlameTelemetry,0,sizeof(gArenaFlameTelemetry));
     PsychicReset();
-    ArenaPsychicFx_Init(gBattleMons[0].species==SPECIES_MEWTWO||gBattleMons[1].species==SPECIES_MEWTWO);
+    ArenaPsychicFx_Init(BattleHasPsychic());
     memset(sArena.bodies, 0, sizeof(sArena.bodies));
     memset(sArena.shots, 0, sizeof(sArena.shots));
     memset(&gArenaSpriteTelemetry, 0, sizeof(gArenaSpriteTelemetry));
@@ -873,10 +914,7 @@ static void CB2_ArenaInit(void)
         body->facing = i ? FACE_DOWN : FACE_UP;
         body->moveSlot = FirstMove(i, TRUE);
         body->cooldown = i ? 30 : 15;
-        // Lapras' source canvas has an asymmetric swimming-body registration.
-        // Restore its feet anchor after fitting every original pixel into OBJ.
-        body->sprite = CreateSprite(&template, body->x / Q,
-            body->y / Q-(gBattleMons[i].species==SPECIES_LAPRAS?11:0), 0);
+        body->sprite = CreateSprite(&template, body->x / Q, body->y / Q, 0);
         body->shadow = CreateSprite(&sShadowTemplate, body->x / Q, body->y / Q + 8, 10);
         gSprites[body->sprite].oam.paletteNum = i;
         gSprites[body->sprite].affineAnimPaused = TRUE;
@@ -926,6 +964,7 @@ static void CB2_ArenaInit(void)
     PutWindowTilemap(0);
     CopyWindowToVram(0, COPYWIN_FULL);
     SendoutInit();
+    MonVisualScaleApply();
     AnimateSprites();BuildOamBuffer();
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_MODE_0 | DISPCNT_OBJ_1D_MAP | DISPCNT_OBJ_ON);
     ShowBg(0);
@@ -1005,7 +1044,7 @@ static void Fire(u8 side, u8 slot, s32 targetX, s32 targetY)
     len = max(Abs(dx), Abs(dy)) + min(Abs(dx), Abs(dy)) / 2;
     if (!len) { dx = Q; len = Q; }
     body->attackX = dx * Q / len; body->attackY = dy * Q / len;
-    if(profile->move==MOVE_FLAMETHROWER)
+    if(ArenaMoves_Beam(profile->move))
     {
         static const s16 dirs[8][2]={{0,256},{181,181},{256,0},{181,-181},{0,-256},{-181,-181},{-256,0},{-181,181}};
         body->attackX=dirs[body->shotFacing][0];body->attackY=dirs[body->shotFacing][1];
@@ -1013,7 +1052,7 @@ static void Fire(u8 side, u8 slot, s32 targetX, s32 targetY)
         gArenaFlameTelemetry[0]++;
     }
     if (profile->kind == ARENA_MOVE_PROJECTILE
-        && !(profile->move==MOVE_PSYCHIC && gBattleMons[side].species==SPECIES_MEWTWO
+        && !(profile->move==MOVE_PSYCHIC
              && PsychicStart(side,targetX,targetY)))
     {
         for (i = 0; i < SHOTS_COUNT; i++) if (!sArena.shots[i].life) break;
@@ -1365,6 +1404,8 @@ static void AiChooseMove(s32 distance)
             if(move==MOVE_SUBSTITUTE)useful=!sCover[1].hp&&gBattleMons[1].hp>gBattleMons[1].maxHP/2;
             if(move==MOVE_SMOKESCREEN)useful=!sSmoke[1].life&&distance<100;
             if(move==MOVE_TELEPORT)useful=distance<60;
+            if(move==MOVE_REFLECT)useful=!sBarrierLife[1][0];
+            if(move==MOVE_LIGHT_SCREEN)useful=!sBarrierLife[1][1];
             // One setup action, then pressure. Repeated buffs should not turn
             // early wild encounters into several seconds of waiting around.
             if(hasAttack && sArena.bodies[1].statusActions)useful=FALSE;
@@ -1454,6 +1495,7 @@ static void ApplyMoveHit(u8 side,u16 move)
     s32 damage;
     if(move==MOVE_SUBSTITUTE){if(!CoverStart(side))ArenaFeedback_Wall(target->x/Q,target->y/Q);return;}
     if(move==MOVE_SMOKESCREEN){SmokeStart(side);return;}
+    if(move==MOVE_REFLECT||move==MOVE_LIGHT_SCREEN){BarrierStart(side,move);return;}
     if(move!=MOVE_TELEPORT&&move!=MOVE_DOUBLE_TEAM&&SpecialInvulnerable(targetSide))
     {gArenaWarpTossTelemetry[7]++;return;}
     if(move==MOVE_TELEPORT){WarpStart(side);return;}
@@ -1507,7 +1549,7 @@ static void ApplyResolvedHit(u8 side,u16 move,s32 damage)
         target->knockY=sArena.bodies[side].attackY*(move==MOVE_QUICK_ATTACK?4:2);
         gRealtimeArenaTelemetry.hits[side]++;
         gRealtimeArenaTelemetry.lastDamage=damage;
-        if(hp)
+        if(hp || move==MOVE_SUPERPOWER || move==MOVE_METEOR_MASH)
         {
             u8 effects=RealtimeArena_ResolveSecondary(side,targetSide,move);
             if(effects&1){gArenaMoveTelemetry.statChanges[side]++;gArenaAdventureTelemetry[0]++;}
@@ -1532,7 +1574,10 @@ static void ApplyResolvedHit(u8 side,u16 move,s32 damage)
         PlaySE(move==MOVE_ABSORB?SE_M_ABSORB_2:SE_M_COMET_PUNCH);
         if(!hp)
         {
-            sArena.resultTimer=12;sArena.lastAttacker=side;sArena.lastTarget=targetSide;
+            // Let a committed beam finish its visual release after a KO.
+            // Damage/PP are already resolved; no further hits or input run.
+            sArena.resultTimer=ArenaMoves_Beam(move)?max(12,sArena.bodies[side].actionLife+8):12;
+            sArena.lastAttacker=side;sArena.lastTarget=targetSide;
             gArenaResultTelemetry.started=gMain.vblankCounter1;
         }
     }
@@ -1645,7 +1690,7 @@ static void TickActions(void)
             else if(!(body->actionAge%3))ArenaFeedback_Dust(body->x/Q,body->y/Q,TRUE);
             hit=ArenaMoves_SegmentHit(oldX,oldY,body->x/Q,body->y/Q,target->x/Q,target->y/Q,p->radius);
         }
-        else if(p->move==MOVE_FLAMETHROWER)
+        else if(ArenaMoves_Beam(p->move))
         {
             u32 j;
             u8 reach=min(p->range,min(20+body->actionAge*7,body->actionLife*11));
@@ -1677,7 +1722,7 @@ static void TickActions(void)
             {
                 const struct ArenaRect *r=&gArenaObstacles[j];
                 s16 x=(r->left+r->right)/2,y=(r->top+r->bottom)/2;
-                if(ArenaMoves_InCone(x-oldX,y-oldY,body->attackX,body->attackY,reach,3)
+                if(ArenaMoves_InCone(x-oldX,y-oldY,body->attackX,body->attackY,reach,p->cone)
                     &&ArenaNav_FirstObstacle(oldX,oldY,x,y,0)==j)
                 {
                     body->terrainMask|=1<<j;
@@ -1688,17 +1733,18 @@ static void TickActions(void)
             for(j=0;j<ELEMENT_COUNT;j++)
             {
                 struct ArenaSurface *surface=&sSurfaces[j];
-                if(surface->kind&&ArenaMoves_InCone(surface->x-oldX,surface->y-oldY,body->attackX,body->attackY,reach+8,3)
+                if(surface->kind&&ArenaMoves_InCone(surface->x-oldX,surface->y-oldY,body->attackX,body->attackY,reach+8,p->cone)
                     &&ArenaNav_LineClear(oldX,oldY,surface->x,surface->y,0))
                 {
                     struct ArenaShot heat={0};
-                    heat.move=MOVE_FLAMETHROWER;heat.x=surface->x*Q;heat.y=surface->y*Q;
+                    heat.move=(p->move==MOVE_AURORA_BEAM?MOVE_ICY_WIND:p->move==MOVE_HYDRO_PUMP?MOVE_SURF:(p->move==MOVE_FLAMETHROWER||p->move==MOVE_FIRE_BLAST||p->move==MOVE_SACRED_FIRE)?MOVE_FLAMETHROWER:MOVE_NONE);heat.x=surface->x*Q;heat.y=surface->y*Q;
                     heat.elementMask=sFlameElementMask[side];ElementReact(&heat);
                     sFlameElementMask[side]=heat.elementMask;
                 }
             }
             if(!(body->actionAge%9))ArenaFeedback_Embers(oldX+body->attackX*reach/Q,oldY+body->attackY*reach/Q-8,body->attackX,body->attackY);
-            hit=ArenaMoves_InCone((target->x-body->x)/Q,(target->y-body->y)/Q,body->attackX,body->attackY,reach,3);
+            hit=(ArenaMoves_Beam(p->move)==1||body->actionAge>=8)
+                &&ArenaMoves_InCone((target->x-body->x)/Q,(target->y-body->y)/Q,body->attackX,body->attackY,reach,p->cone);
         }
         else if(p->kind==ARENA_MOVE_MELEE||p->kind==ARENA_MOVE_CONE)
         {
@@ -1726,7 +1772,7 @@ static void TickActions(void)
             {if(CoverSegment(side,p->move,oldX,oldY,body->x/Q,body->y/Q,p->radius))body->connected=TRUE;}
             else if(p->kind==ARENA_MOVE_CONE||p->kind==ARENA_MOVE_MELEE)
             {
-                u8 range=p->move==MOVE_FLAMETHROWER?sFlameReach[side]:p->kind==ARENA_MOVE_CONE?min(p->range,24+body->actionAge*4):p->range;
+                u8 range=ArenaMoves_Beam(p->move)?sFlameReach[side]:p->kind==ARENA_MOVE_CONE?min(p->range,24+body->actionAge*4):p->range;
                 if(CoverCone(side,p,range,hit))body->connected=TRUE;
             }
         }
@@ -1738,7 +1784,7 @@ static void TickActions(void)
                 decoyHit=DecoySegment(side^1,oldX,oldY,body->x/Q,body->y/Q,p->radius);
             else if(d->age>=24 && (p->kind==ARENA_MOVE_CONE||p->kind==ARENA_MOVE_MELEE))
             {
-                u8 range=p->move==MOVE_FLAMETHROWER?sFlameReach[side]:p->kind==ARENA_MOVE_CONE?min(p->range,24+body->actionAge*4):p->range;
+                u8 range=ArenaMoves_Beam(p->move)?sFlameReach[side]:p->kind==ARENA_MOVE_CONE?min(p->range,24+body->actionAge*4):p->range;
                 if(ArenaMoves_InCone(d->x-body->x/Q,d->y-body->y/Q,body->attackX,body->attackY,range,p->cone)
                     &&ArenaNav_LineClear(body->x/Q,body->y/Q,d->x,d->y,2)
                     &&(!hit||target->dash||ArenaNav_Distance(oldX,oldY,d->x,d->y)<ArenaNav_Distance(oldX,oldY,target->x/Q,target->y/Q)))
@@ -1922,6 +1968,11 @@ static void CB2_Arena(void)
         if (sArena.resultTimer)
         {
             SpecialTick();
+            for(i=0;i<2;i++)if(sArena.bodies[i].actionLife)
+            {
+                sArena.bodies[i].actionAge++;sArena.bodies[i].actionLife--;
+                sFlameReach[i]=min(sFlameReach[i],sArena.bodies[i].actionLife*11);
+            }
             if (--sArena.resultTimer == 0) { ArenaExit(TRUE); return; }
         }
         else
@@ -1934,6 +1985,7 @@ static void CB2_Arena(void)
             {
                 DecoyTick();
                 CoverTick();
+                BarrierTick();
                 SpecialTick();
                 TickPhysics();
                 now=gMain.vblankCounter1*228+(REG_VCOUNT+68)%228;
@@ -2010,7 +2062,7 @@ static void CB2_Arena(void)
         const struct ArenaMoveProfile *profile=ArenaMoves_Get(gBattleMons[i].moves[body->shotTimer?body->shotSlot:body->moveSlot]);
         struct Sprite *sprite = &gSprites[body->sprite];
         sprite->x = body->x / Q;
-        sprite->y = body->y / Q-(gBattleMons[i].species==SPECIES_LAPRAS?11:0);
+        sprite->y = body->y / Q;
         gSprites[body->shadow].x = sprite->x;
         gSprites[body->shadow].y = body->y / Q + 8;
         gSprites[body->shadow].invisible = gBattleMons[i].hp == 0;
@@ -2042,6 +2094,7 @@ static void CB2_Arena(void)
             if(holdPose)tick=anim->hitTick;
             sprite->y2=PsychicBusy(i)?-3-Sin(sPsychic[i].age*4,2):0;
             frame = ArenaSprites_Frame(anim,tick);
+            sprite->y += 8-body->art->ground[animation*8+direction]*MonVisualScale(i)/256;
             if (!RollBallVisible(i) && (body->drawnFrame != frame || body->drawnDirection != direction))
             {
                 ArenaSprites_Decode(anim, direction, frame, sMonFrameTiles[i]);
@@ -2145,8 +2198,8 @@ static void CB2_Arena(void)
         gArenaMoveTelemetry.actionMove[i]=profile->move;
         ArenaMoveFx_Action(i,profile,body->x/Q,body->y/Q,body->shotFacing,body->actionAge,
             body->actionLife!=0&&profile->move!=MOVE_DOUBLE_TEAM&&profile->move!=MOVE_TELEPORT&&profile->move!=MOVE_SEISMIC_TOSS&&profile->move!=MOVE_DIG&&profile->move!=MOVE_FLY&&profile->move!=MOVE_SUBSTITUTE&&profile->move!=MOVE_SMOKESCREEN,sArena.paused);
-        ArenaMoveFx_Flame(i,body->x/Q,body->y/Q-8,body->shotFacing,body->actionAge,sFlameReach[i],
-            profile->move==MOVE_FLAMETHROWER&&body->actionLife&&!sArena.paused&&!sArena.resultTimer);
+        ArenaMoveFx_Flame(i,profile->move,body->x/Q,body->y/Q-8,body->shotFacing,body->actionAge,sFlameReach[i],
+            ArenaMoves_Beam(profile->move)&&body->actionLife&&!sArena.paused&&gBattleMons[i].hp);
     }
     {
         u8 warmth=0;
@@ -2177,7 +2230,9 @@ static void CB2_Arena(void)
     gSprites[sArena.cueSprite].invisible = sArena.aiState != AI_AIM || sArena.resultTimer;
     DecoyDraw();
     SpecialDraw();
+    MonVisualScaleApply();
     CoverDraw();
+    BarrierDraw();
     CaptureDraw();
     gArenaAiTelemetry.state = sArena.aiState;
     gArenaAiTelemetry.goalX = sArena.goal.x; gArenaAiTelemetry.goalY = sArena.goal.y;
@@ -2224,6 +2279,7 @@ static void ArenaExit(bool8 fainted)
     CaptureReset();
     DecoyHide();
     CoverHide();
+    BarrierHide();
     SpecialHide();
     // Finish the ORIGINAL battle scripts behind the arena image. No classic
     // scene reconstruction just to say "fainted" and animate an EXP bar.

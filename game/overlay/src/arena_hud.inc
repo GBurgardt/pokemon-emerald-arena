@@ -9,6 +9,7 @@ static const u32 sHudPanelTiles[] = INCBIN_U32("graphics/arena/psychic/hud.4bpp"
 static const u8 sHudPPLabel[] = _("PP ");
 static EWRAM_DATA bool8 sHudCached=FALSE;
 static EWRAM_DATA u16 sHudLastHp[2]={},sHudLastMax[2]={},sHudLastSpecies[2]={};
+static EWRAM_DATA u8 sHudLastLevel[2]={};
 static void HudTinyWindow(u8 window,u32 x,u32 y,const u8 *text,u8 color,u32 maxChars)
 {
     u32 n=0;
@@ -37,7 +38,8 @@ static void DrawStatusHud(void)
     sHudRecovery=RecoveryPips();
     if(sHudCached && sHudLastHp[0]==gBattleMons[0].hp && sHudLastHp[1]==gBattleMons[1].hp
         && sHudLastMax[0]==gBattleMons[0].maxHP && sHudLastMax[1]==gBattleMons[1].maxHP
-        && sHudLastSpecies[0]==gBattleMons[0].species && sHudLastSpecies[1]==gBattleMons[1].species)return;
+        && sHudLastSpecies[0]==gBattleMons[0].species && sHudLastSpecies[1]==gBattleMons[1].species
+        && sHudLastLevel[0]==gBattleMons[0].level && sHudLastLevel[1]==gBattleMons[1].level)return;
     // One small authored background; preserve the terrain through alpha corners.
     CpuFastCopy(sHudPanelTiles,gWindows[0].tileData,30*2*32);
     for(side=0;side<2;side++)
@@ -49,12 +51,16 @@ static void DrawStatusHud(void)
         StringCopy(text,gSpeciesNames[mon->species]);
         Print(x,0,text,4);
         ConvertIntToDecimalStringN(text,mon->hp,STR_CONV_MODE_LEFT_ALIGN,3);
-        HudTiny(side?218:97,5,text,4,3);
+        HudTiny(side?218:97,6,text,4,3);
+        text[0]=CHAR_L;
+        ConvertIntToDecimalStringN(text+1,mon->level,STR_CONV_MODE_LEFT_ALIGN,3);
+        HudTiny(side?214:93,0,text,4,4);
         if(mon->hp&&!fill)fill=1;
         HudRect(bar,12,102,3,12);
         HudRect(bar,12,fill,1,4);
         HudRect(bar,13,fill,2,color);
         sHudLastHp[side]=mon->hp;sHudLastMax[side]=mon->maxHP;sHudLastSpecies[side]=mon->species;
+        sHudLastLevel[side]=mon->level;
     }
     sHudCached=TRUE;
 }

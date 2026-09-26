@@ -1,8 +1,8 @@
 # Play Emerald Arena
 
-Already use a ROM patcher? [Download the full BPS patch](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.9.0/Emerald-Arena-0.9.0-full.bps) and apply it to your unmodified Emerald (USA/Europe) ROM. It includes the animations and produces the same 0.9.0 game, without extra downloads.
+Already use a ROM patcher? [Download the full BPS patch](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.0/Emerald-Arena-0.10.0-full.bps) and apply it to your unmodified Emerald (USA/Europe) ROM. It includes the animations and produces the same 0.10.0 game, without extra downloads.
 
-[Download the ZIP](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.9.0/Emerald-Arena-0.9.0.zip) · [Watch gameplay](https://github.com/GBurgardt/pokemon-emerald-arena#watch-gameplay)
+[Download the ZIP](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.0/Emerald-Arena-0.10.0.zip) · [Watch gameplay](https://github.com/GBurgardt/pokemon-emerald-arena#watch-gameplay)
 
 [**How to play · 1 minute video (MP4)**](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.3.3/emerald-arena-walkthrough.mp4)
 From download to your first fight, saving and continuing. GBA button names are
@@ -13,12 +13,12 @@ shown in the video; your emulator's keyboard bindings may differ.
 You need your own **unmodified Pokémon Emerald (USA/Europe) `.gba`** and Internet
 access. Other languages, other Pokémon games and already-patched ROMs will not work.
 
-1. Download **Emerald-Arena-0.9.0.zip** above. Extract/unzip it first.
+1. Download **Emerald-Arena-0.10.0.zip** above. Extract/unzip it first.
 2. Open **Prepare-Emerald-Arena.html** in a current Chrome, Firefox or Safari.
    It is a local web page, not an app to install. Do not open `install.mjs`.
 3. Click **Choose Emerald ROM** and select your original `.gba` file, not a ZIP.
 4. Wait while it checks the ROM and prepares the animations. Keep the page open.
-5. Click **Download game**. You will get **Emerald-Arena-0.9.0.gba** in your downloads.
+5. Click **Download game**. You will get **Emerald-Arena-0.10.0.gba** in your downloads.
 
 **Updating?** Back up your in-game `.sav` first. Import a copy for the new game,
 or give that copy the same basename as the new ROM if your emulator requires it.
@@ -29,7 +29,7 @@ animation files from pinned public sources. The finished game works offline.
 
 ## 2. Open it in an emulator
 
-Open **Emerald-Arena-0.9.0.gba** using your GBA emulator's **Open / Load game**
+Open **Emerald-Arena-0.10.0.gba** using your GBA emulator's **Open / Load game**
 command. [mGBA](https://mgba.io/downloads.html) is the desktop emulator used for
 testing. If you already have a GBA emulator, you do not need another one.
 
@@ -112,7 +112,7 @@ Include the emulator/version, device, error message and steps. **Do not attach y
 
 ## Current scope
 
-100 animated Pokémon. Wild and single trainer arena encounters;
+150 animated Pokémon. Wild and single trainer arena encounters;
 double and link battles remain classic. Unsupported effects also fall
 back to classic battles. This is not a fully rebalanced adventure.
 
@@ -133,7 +133,11 @@ Fire attacks, mud, rocks, bubbles, wind and stars now join the earlier moves.
 Stat changes affect native battle stats; Speed changes also affect movement.
 Draining moves restore HP from actual damage. False Swipe leaves one HP.
 Fire attacks can cause native burns, with damage about every five active seconds.
-Pause and capture freeze that timer. [All 58 move profiles](game/overlay/src/arena_moves.c).
+Pause and capture freeze that timer. [All adapted move profiles](game/overlay/src/arena_moves.c).
+
+Reflect reduces physical damage; Light Screen reduces special damage. Each
+lasts ten active seconds. Both can coexist, and menus pause their timers.
+Critical hits bypass them, following Emerald's original rules.
 
 Rollout is a real-time roll. Press A and the user spins up in place, then
 rolls the way it is facing (or the way you hold), faster and faster, until it

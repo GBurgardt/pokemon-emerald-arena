@@ -1,0 +1,252 @@
+[
+  {
+    "species": "IVYSAUR",
+    "move": "SOLAR_BEAM",
+    "level": 60
+  },
+  {
+    "species": "VENUSAUR",
+    "move": "SOLAR_BEAM",
+    "level": 60
+  },
+  {
+    "species": "CHARMANDER",
+    "move": "FLAMETHROWER",
+    "level": 60
+  },
+  {
+    "species": "CHARMELEON",
+    "move": "FLAMETHROWER",
+    "level": 60
+  },
+  {
+    "species": "WARTORTLE",
+    "move": "SURF",
+    "level": 60
+  },
+  {
+    "species": "BUTTERFREE",
+    "move": "PSYCHIC",
+    "level": 60
+  },
+  {
+    "species": "BEEDRILL",
+    "move": "AERIAL_ACE",
+    "level": 60
+  },
+  {
+    "species": "PIDGEOT",
+    "move": "FLY",
+    "level": 60
+  },
+  {
+    "species": "ARBOK",
+    "move": "DIG",
+    "level": 60
+  },
+  {
+    "species": "PIKACHU",
+    "move": "SHOCK_WAVE",
+    "level": 60
+  },
+  {
+    "species": "SANDSLASH",
+    "move": "DIG",
+    "level": 60
+  },
+  {
+    "species": "NIDOQUEEN",
+    "move": "FIRE_BLAST",
+    "level": 60
+  },
+  {
+    "species": "NIDOKING",
+    "move": "SURF",
+    "level": 60
+  },
+  {
+    "species": "CLEFABLE",
+    "move": "METEOR_MASH",
+    "level": 60
+  },
+  {
+    "species": "NINETALES",
+    "move": "FLAMETHROWER",
+    "level": 60
+  },
+  {
+    "species": "VENOMOTH",
+    "move": "PSYCHIC",
+    "level": 60
+  },
+  {
+    "species": "DUGTRIO",
+    "move": "DIG",
+    "level": 60
+  },
+  {
+    "species": "PERSIAN",
+    "move": "SLASH",
+    "level": 60
+  },
+  {
+    "species": "GOLDUCK",
+    "move": "HYDRO_PUMP",
+    "level": 60
+  },
+  {
+    "species": "PRIMEAPE",
+    "move": "CROSS_CHOP",
+    "level": 60
+  },
+  {
+    "species": "ARCANINE",
+    "move": "EXTREME_SPEED",
+    "level": 60
+  },
+  {
+    "species": "POLIWRATH",
+    "move": "SURF",
+    "level": 60
+  },
+  {
+    "species": "MACHAMP",
+    "move": "CROSS_CHOP",
+    "level": 60
+  },
+  {
+    "species": "VICTREEBEL",
+    "move": "SOLAR_BEAM",
+    "level": 60
+  },
+  {
+    "species": "RAPIDASH",
+    "move": "FIRE_BLAST",
+    "level": 60
+  },
+  {
+    "species": "SLOWBRO",
+    "move": "PSYCHIC",
+    "level": 60
+  },
+  {
+    "species": "MAGNETON",
+    "move": "SHOCK_WAVE",
+    "level": 60
+  },
+  {
+    "species": "DEWGONG",
+    "move": "AURORA_BEAM",
+    "level": 60
+  },
+  {
+    "species": "CLOYSTER",
+    "move": "AURORA_BEAM",
+    "level": 60
+  },
+  {
+    "species": "HAUNTER",
+    "move": "SHADOW_BALL",
+    "level": 60
+  },
+  {
+    "species": "KINGLER",
+    "move": "CRABHAMMER",
+    "level": 60
+  },
+  {
+    "species": "EXEGGUTOR",
+    "move": "SOLAR_BEAM",
+    "level": 60
+  },
+  {
+    "species": "MAROWAK",
+    "move": "DIG",
+    "level": 60
+  },
+  {
+    "species": "RHYDON",
+    "move": "MEGAHORN",
+    "level": 60
+  },
+  {
+    "species": "STARMIE",
+    "move": "HYDRO_PUMP",
+    "level": 60
+  },
+  {
+    "species": "SCYTHER",
+    "move": "SLASH",
+    "level": 60
+  },
+  {
+    "species": "JYNX",
+    "move": "PSYCHIC",
+    "level": 60
+  },
+  {
+    "species": "ELECTABUZZ",
+    "move": "SHOCK_WAVE",
+    "level": 60
+  },
+  {
+    "species": "MAGMAR",
+    "move": "FIRE_BLAST",
+    "level": 60
+  },
+  {
+    "species": "FLAREON",
+    "move": "FLAMETHROWER",
+    "level": 60
+  },
+  {
+    "species": "RAIKOU",
+    "move": "SHOCK_WAVE",
+    "level": 60
+  },
+  {
+    "species": "ENTEI",
+    "move": "FIRE_BLAST",
+    "level": 60
+  },
+  {
+    "species": "SUICUNE",
+    "move": "AURORA_BEAM",
+    "level": 60
+  },
+  {
+    "species": "LUGIA",
+    "move": "AEROBLAST",
+    "level": 80
+  },
+  {
+    "species": "HO_OH",
+    "move": "SACRED_FIRE",
+    "level": 80
+  },
+  {
+    "species": "SALAMENCE",
+    "move": "DRAGON_CLAW",
+    "level": 60
+  },
+  {
+    "species": "METAGROSS",
+    "move": "METEOR_MASH",
+    "level": 60
+  },
+  {
+    "species": "REGIROCK",
+    "move": "SUPERPOWER",
+    "level": 60
+  },
+  {
+    "species": "REGICE",
+    "move": "SUPERPOWER",
+    "level": 60
+  },
+  {
+    "species": "REGISTEEL",
+    "move": "SUPERPOWER",
+    "level": 60
+  }
+]

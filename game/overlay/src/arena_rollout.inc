@@ -60,7 +60,11 @@ static const u8 sBallOrder[BALL_PHASES] = {0, 2, 4, 6, 1, 3, 5, 7};
 static void RollBallInit(void)
 {
     s32 k, i, last;
+    bool8 needed=FALSE;
     memset(sBall, 0, sizeof(sBall));
+    for(i=0;i<2;i++)for(k=0;k<MAX_MON_MOVES;k++)
+        if(gBattleMons[i].moves[k]==MOVE_ROLLOUT)needed=TRUE;
+    if(!needed)return;
     if (!sBallHeap) sBallHeap = Alloc(sizeof(*sBallHeap));
     if (!sBallHeap) return;
     for (i = 0; i <= 512; i++) sBallHeap->asin[i] = 127;
@@ -220,9 +224,9 @@ static void RollBallMapTile(u8 side, u32 t)
     s32 ox = (t % BALL_COLS) * 8 + BALL_X0 - BALL_CX, oy = (t / BALL_COLS) * 8 + BALL_Y0 - BALL_CY, x, y;
     for (y = 0; y < 8; y++, m += 8)
     {
-        s32 dy = oy + y, dy2 = dy * dy, ny = ntab[dy];
-        s32 rowLit = ny * BALL_LY, rowU = ny * hy;
+        s32 dy = oy + y, dy2 = dy * dy, ny, rowLit, rowU;
         if (dy2 > r2) { CpuFill32(0, m, 8); continue; }
+        ny = ntab[dy]; rowLit = ny * BALL_LY; rowU = ny * hy;
         for (x = 0; x < 8; x++)
         {
             s32 dx = ox + x, d2 = dx * dx + dy2, nx, z, lit, u;
@@ -335,6 +339,7 @@ static void RollBallShow(u8 side, struct Sprite *sprite)
     }
     // The ball's centre sits at the body's position, like the pose's.
     sprite->x += 32 - BALL_CX;
+    sprite->y=sArena.bodies[side].y/Q+8-(BALL_CY+b->radius-32)*MonVisualScale(side)/256;
     SetOamMatrix(sprite->oam.matrixNum, 0x100, 0, 0, 0x100);
 }
 

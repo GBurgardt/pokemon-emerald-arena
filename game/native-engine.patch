@@ -1,5 +1,5 @@
 diff --git a/Makefile b/Makefile
-index d25123ab8..662276465 100644
+index d25123a..89218aa 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -112,7 +112,8 @@ INCLUDE_CPP_ARGS := $(INCLUDE_DIRS:%=-iquote %)
@@ -12,7 +12,7 @@ index d25123ab8..662276465 100644
  ifeq ($(MODERN),0)
    CPPFLAGS += -I tools/agbcc/include -I tools/agbcc -nostdinc -undef -std=gnu89
    CC1 := tools/agbcc/bin/agbcc$(EXE)
-@@ -297,6 +298,11 @@ endif
+@@ -297,6 +298,14 @@ endif
  
  # Dependency rules (for the *.c & *.s sources to .o files)
  # Have to be explicit or else missing files won't be reported.
@@ -20,11 +20,14 @@ index d25123ab8..662276465 100644
 +$(C_BUILDDIR)/realtime_arena.o: src/arena_double_team.inc src/arena_psychic.inc graphics/arena/double-team/effect.4bpp graphics/arena/psychic/palette.gbapal
 +$(C_BUILDDIR)/realtime_arena.o: src/arena_cover.inc graphics/arena/cover-smoke/effect.4bpp graphics/arena/cover-smoke/coast.4bpp graphics/arena/cover-smoke/cave.4bpp graphics/arena/cover-smoke/desert.4bpp graphics/arena/cover-smoke/gym.4bpp graphics/arena/cover-smoke/palette.gbapal $(wildcard graphics/arena/cover-smoke/doll-*.4bpp)
 +$(C_BUILDDIR)/arena_move_fx.o: graphics/arena/flame/plume.4bpp graphics/arena/flame/palette.gbapal
++$(C_BUILDDIR)/arena_move_fx.o: $(wildcard graphics/arena/signatures150/*.4bpp)
++$(C_BUILDDIR)/arena_move_fx.o: $(wildcard graphics/arena/signatures150-extra/*.4bpp)
++$(C_BUILDDIR)/arena_lab.o: src/arena_showcase150.inc
 +$(C_BUILDDIR)/arena_sprites.o: $(wildcard .arena-dev/pmd/*.4bpp .arena-dev/pmd/*.gbapal)
  
  # As a side effect, they're evaluated immediately instead of when the rule is invoked.
  # It doesn't look like $(shell) can be deferred so there might not be a better way (Icedude_907: there is soon).
-@@ -330,7 +336,7 @@ ifneq ($(NODEP),1)
+@@ -330,7 +339,7 @@ ifneq ($(NODEP),1)
  endif
  
  $(C_BUILDDIR)/%.o: $(C_SUBDIR)/%.s
@@ -33,7 +36,7 @@ index d25123ab8..662276465 100644
  
  $(C_BUILDDIR)/%.d: $(C_SUBDIR)/%.s
  	$(SCANINC) -M $@ -g $(ASSETS_DIR_NAME) $(INCLUDE_SCANINC_ARGS) -I "" $<
-@@ -340,7 +346,7 @@ ifneq ($(NODEP),1)
+@@ -340,7 +349,7 @@ ifneq ($(NODEP),1)
  endif
  
  $(DATA_ASM_BUILDDIR)/%.o: $(DATA_ASM_SUBDIR)/%.s
@@ -42,11 +45,12 @@ index d25123ab8..662276465 100644
  
  $(DATA_ASM_BUILDDIR)/%.d: $(DATA_ASM_SUBDIR)/%.s
  	$(SCANINC) -M $@ -g $(ASSETS_DIR_NAME) $(INCLUDE_SCANINC_ARGS) -I "" $<
-@@ -385,5 +391,10 @@ $(ROM): $(ELF)
+@@ -385,5 +394,11 @@ $(ROM): $(ELF)
  	$(FIX) $@ -p --silent
  
  # Symbol file (`make syms`)
-+$(C_BUILDDIR)/realtime_arena.o: src/arena_warp_toss.inc graphics/arena/warp-toss/effect.4bpp
++$(C_BUILDDIR)/realtime_arena.o: src/arena_warp_toss.inc src/arena_rollout.inc graphics/arena/warp-toss/effect.4bpp
++$(C_BUILDDIR)/realtime_arena.o: src/arena_barrier.inc graphics/arena/barriers/effect.4bpp
 +$(C_BUILDDIR)/realtime_arena.o: src/arena_dig_fly.inc graphics/arena/dig-fly/effect.4bpp
 +$(C_BUILDDIR)/realtime_arena.o: src/arena_toss.inc .arena-dev/art/space.4bpp .arena-dev/art/space.bin .arena-dev/art/space.gbapal
 +$(C_BUILDDIR)/arena_terrain.o: .arena-dev/art/crater.4bpp
@@ -54,7 +58,7 @@ index d25123ab8..662276465 100644
  $(SYM): $(ELF)
  	$(OBJDUMP) -t $< | sort -u | grep -E "^0[2389]" | $(PERL) -p -e 's/^(\w{8}) (\w).{6} \S+\t(\w{8}) (\S+)$$/\1 \2 \3 \4/g' > $@
 diff --git a/data/battle_scripts_1.s b/data/battle_scripts_1.s
-index d7733eb0e..80e0dcec3 100644
+index d7733eb..80e0dce 100644
 --- a/data/battle_scripts_1.s
 +++ b/data/battle_scripts_1.s
 @@ -2806,6 +2806,10 @@ BattleScript_EffectCamouflage::
@@ -77,7 +81,7 @@ index d7733eb0e..80e0dcec3 100644
  @ Yes/No for sending out a new Pokémon when the opponent is switching
  	printstring STRINGID_ENEMYABOUTTOSWITCHPKMN
 diff --git a/data/event_scripts.s b/data/event_scripts.s
-index 6834c98fb..1a2fb4eef 100644
+index 6834c98..1a2fb4e 100644
 --- a/data/event_scripts.s
 +++ b/data/event_scripts.s
 @@ -1056,3 +1056,8 @@ Common_EventScript_LegendaryFlewAway::
@@ -90,7 +94,7 @@ index 6834c98fb..1a2fb4eef 100644
 +	.include "data/scripts/arena_lab.inc"
 +#endif
 diff --git a/include/constants/flags.h b/include/constants/flags.h
-index 74b10cdfb..67edf2d05 100644
+index 74b10cd..67edf2d 100644
 --- a/include/constants/flags.h
 +++ b/include/constants/flags.h
 @@ -43,7 +43,7 @@
@@ -103,7 +107,7 @@ index 74b10cdfb..67edf2d05 100644
  #define FLAG_UNUSED_0x022    0x22 // Unused Flag
  #define FLAG_UNUSED_0x023    0x23 // Unused Flag
 diff --git a/include/event_object_movement.h b/include/event_object_movement.h
-index ebc6a6d0e..73dfef357 100644
+index ebc6a6d..73dfef3 100644
 --- a/include/event_object_movement.h
 +++ b/include/event_object_movement.h
 @@ -1,5 +1,6 @@
@@ -114,7 +118,7 @@ index ebc6a6d0e..73dfef357 100644
  #include "constants/event_object_movement.h"
  
 diff --git a/ld_script.ld b/ld_script.ld
-index aeaf08250..76cd65fc9 100644
+index aeaf082..76cd65f 100644
 --- a/ld_script.ld
 +++ b/ld_script.ld
 @@ -13,8 +13,8 @@ MEMORY
@@ -160,7 +164,7 @@ index aeaf08250..76cd65fc9 100644
          src/*.o(.rodata);
          data/*.o(.rodata);
 diff --git a/src/battle_controller_player.c b/src/battle_controller_player.c
-index 45bf1a17e..3dda8ab5c 100644
+index 45bf1a1..3dda8ab 100644
 --- a/src/battle_controller_player.c
 +++ b/src/battle_controller_player.c
 @@ -1,4 +1,5 @@
@@ -189,7 +193,7 @@ index 45bf1a17e..3dda8ab5c 100644
          expPointsToGive = T1_READ_16(&gBattleBufferA[gActiveBattler][2]);
          taskId = CreateTask(Task_GiveExpToMon, 10);
 diff --git a/src/battle_main.c b/src/battle_main.c
-index 11fc16860..1c0816906 100644
+index 11fc168..1c08169 100644
 --- a/src/battle_main.c
 +++ b/src/battle_main.c
 @@ -1,4 +1,6 @@
@@ -449,7 +453,7 @@ index 11fc16860..1c0816906 100644
      {
          RandomlyGivePartyPokerus(gPlayerParty);
 diff --git a/src/battle_script_commands.c b/src/battle_script_commands.c
-index 3af09ec7a..a568d64f9 100644
+index 3af09ec..84ed6e5 100644
 --- a/src/battle_script_commands.c
 +++ b/src/battle_script_commands.c
 @@ -1,5 +1,8 @@
@@ -471,7 +475,7 @@ index 3af09ec7a..a568d64f9 100644
  
  #define DEFENDER_IS_PROTECTED ((gProtectStructs[gBattlerTarget].protected) && (gBattleMoves[gCurrentMove].flags & FLAG_PROTECT_AFFECTED))
  
-@@ -1303,6 +1309,217 @@ static void Cmd_damagecalc(void)
+@@ -1303,6 +1309,242 @@ static void Cmd_damagecalc(void)
      gBattlescriptCurrInstr++;
  }
  
@@ -490,10 +494,7 @@ index 3af09ec7a..a568d64f9 100644
 +    gDynamicBasePower = 0;
 +    if (move == MOVE_ROLLOUT)
 +    {
-+        // Real-time Rollout: the arena reports the distance rolled as a stage.
-+        // Power doubles per stage and once more after Defense Curl, the same
-+        // ramp Cmd_rolloutdamagecalculation applies per consecutive turn.
-+        gDynamicBasePower = gBattleMoves[move].power << gArenaRolloutStage;
++        gDynamicBasePower = gBattleMoves[move].power << min(gArenaRolloutStage, 3);
 +        if (gBattleMons[attacker].status2 & STATUS2_DEFENSE_CURL) gDynamicBasePower *= 2;
 +    }
 +    gBattleStruct->dynamicMoveType = 0;
@@ -511,6 +512,26 @@ index 3af09ec7a..a568d64f9 100644
 +    // ACC_CURR_MOVE is zero. Both accuracy branches end inside scratch.
 +    gBattlescriptCurrInstr = scratch;
 +    Cmd_accuracycheck();
++    // Native accuracy calls the native absorbing-ability hook. Finish its
++    // synchronous HP result here rather than running a presentation script.
++    if (!(gMoveResultFlags & MOVE_RESULT_NO_EFFECT)
++        && ((gBattleMons[target].ability == ABILITY_FLASH_FIRE && gBattleMoves[move].type == TYPE_FIRE
++             && !(gBattleMons[target].status1 & STATUS1_FREEZE))
++            || (gBattleMons[target].ability == ABILITY_WATER_ABSORB && gBattleMoves[move].type == TYPE_WATER
++                && gBattleMoves[move].power)))
++    {
++        if (gBattleMons[target].ability == ABILITY_WATER_ABSORB)
++        {
++            u16 hp=min(gBattleMons[target].maxHP,gBattleMons[target].hp+max(1,gBattleMons[target].maxHP/4));
++            gBattleMons[target].hp=hp;
++            SetMonData(target?&gEnemyParty[gBattlerPartyIndexes[target]]:&gPlayerParty[gBattlerPartyIndexes[target]],MON_DATA_HP,&hp);
++        }
++        gMoveResultFlags|=MOVE_RESULT_DOESNT_AFFECT_FOE;
++        if (attacker == 0) gBattleResults.lastUsedMovePlayer = move;
++        else gBattleResults.lastUsedMoveOpponent = move;
++        gBattlescriptCurrInstr=savedScript;
++        return 0;
++    }
 +    if (!(gMoveResultFlags & MOVE_RESULT_NO_EFFECT))
 +    {
 +        if (move == MOVE_NIGHT_SHADE || move == MOVE_SEISMIC_TOSS)
@@ -544,11 +565,19 @@ index 3af09ec7a..a568d64f9 100644
 +{
 +    const u8 *savedScript = gBattlescriptCurrInstr;
 +    u8 result = 0;
-+    u8 stat = move == MOVE_MUD_SLAP ? STAT_ACC : move == MOVE_MUD_SHOT || move == MOVE_BUBBLE || move == MOVE_ROCK_TOMB || move == MOVE_ICY_WIND ? STAT_SPEED
++    u8 stat = move == MOVE_AURORA_BEAM ? STAT_ATK : move == MOVE_MUD_SLAP ? STAT_ACC : move == MOVE_MUD_SHOT || move == MOVE_BUBBLE || move == MOVE_ROCK_TOMB || move == MOVE_ICY_WIND ? STAT_SPEED
 +        : move == MOVE_PSYCHIC || move == MOVE_SHADOW_BALL || move == MOVE_CRUNCH ? STAT_SPDEF : STAT_DEF;
 +    u8 before = gBattleMons[target].statStages[stat];
++    // These self effects apply on a connected hit, including a KO.
++    if(move==MOVE_SUPERPOWER)
++    {
++        if(gBattleMons[attacker].statStages[STAT_ATK]>MIN_STAT_STAGE)gBattleMons[attacker].statStages[STAT_ATK]--;
++        if(gBattleMons[attacker].statStages[STAT_DEF]>MIN_STAT_STAGE)gBattleMons[attacker].statStages[STAT_DEF]--;
++    }
++    if(move==MOVE_METEOR_MASH && Random()%100<gBattleMoves[move].secondaryEffectChance
++       &&gBattleMons[attacker].statStages[STAT_ATK]<MAX_STAT_STAGE)gBattleMons[attacker].statStages[STAT_ATK]++;
 +    if (!gBattleMons[target].hp) return 0;
-+    if ((gBattleMoves[move].effect == EFFECT_BURN_HIT || move == MOVE_BLAZE_KICK)
++    if ((gBattleMoves[move].effect == EFFECT_BURN_HIT || move == MOVE_BLAZE_KICK || move == MOVE_SACRED_FIRE)
 +        && Random()%100 < gBattleMoves[move].secondaryEffectChance)
 +    {
 +        u8 scratch[2]={0},oldEffect=gBattleCommunication[MOVE_EFFECT_BYTE];
@@ -571,12 +600,12 @@ index 3af09ec7a..a568d64f9 100644
 +        }
 +    }
 +    if (gBattleMons[target].ability != ABILITY_SHIELD_DUST
-+        && (move == MOVE_ACID || move == MOVE_BITE || move == MOVE_ASTONISH
++        && (move == MOVE_AURORA_BEAM || move == MOVE_ACID || move == MOVE_BITE || move == MOVE_ASTONISH
 +            || move == MOVE_MUD_SLAP || move == MOVE_MUD_SHOT || move == MOVE_BUBBLE || move == MOVE_ROCK_TOMB || move == MOVE_ICY_WIND
 +            || move == MOVE_PSYCHIC || move == MOVE_SHADOW_BALL || move == MOVE_CRUNCH)
 +        && Random() % 100 < gBattleMoves[move].secondaryEffectChance)
 +    {
-+        if (move == MOVE_ACID || move == MOVE_MUD_SLAP || move == MOVE_MUD_SHOT || move == MOVE_BUBBLE || move == MOVE_ROCK_TOMB || move == MOVE_ICY_WIND
++        if (move == MOVE_AURORA_BEAM || move == MOVE_ACID || move == MOVE_MUD_SLAP || move == MOVE_MUD_SHOT || move == MOVE_BUBBLE || move == MOVE_ROCK_TOMB || move == MOVE_ICY_WIND
 +            || move == MOVE_PSYCHIC || move == MOVE_SHADOW_BALL || move == MOVE_CRUNCH)
 +        {
 +            ChangeStatBuffs(SET_STAT_BUFF_VALUE(1) | STAT_BUFF_NEGATIVE, stat, 0, NULL);
@@ -599,7 +628,7 @@ index 3af09ec7a..a568d64f9 100644
 +}
 +
 +// A bounded synchronous adapter for a PRIMARY Defense-down action. Eligible
-+// arena battlers have no Protect, Mist, Substitute, Clear Body or White Smoke;
++// arena battlers have no Protect or Mist;
 +// keep those encounters on the original battle script until separately tested.
 +// Shield Dust must not block a primary stat move: use the same flag as Leer.
 +s8 RealtimeArena_StatChange(u16 move, u8 *stat, bool8 *self)
@@ -689,7 +718,7 @@ index 3af09ec7a..a568d64f9 100644
  void AI_CalcDmg(u8 attacker, u8 defender)
  {
      u16 sideStatus = gSideStatuses[GET_BATTLER_SIDE(defender)];
-@@ -2139,6 +2356,25 @@ static void Cmd_printstring(void)
+@@ -2139,6 +2381,25 @@ static void Cmd_printstring(void)
      if (gBattleControllerExecFlags == 0)
      {
          u16 var = T2_READ_16(gBattlescriptCurrInstr + 1);
@@ -715,7 +744,7 @@ index 3af09ec7a..a568d64f9 100644
          PrepareStringBattle(var, gBattlerAttacker);
          gBattlescriptCurrInstr += 3;
          gBattleCommunication[MSG_DISPLAY] = 1;
-@@ -2475,6 +2711,11 @@ void SetMoveEffect(bool8 primary, u8 certain)
+@@ -2475,6 +2736,11 @@ void SetMoveEffect(bool8 primary, u8 certain)
          }
          if (statusChanged == TRUE)
          {
@@ -727,7 +756,7 @@ index 3af09ec7a..a568d64f9 100644
              BattleScriptPush(gBattlescriptCurrInstr + 1);
  
              if (sStatusFlagsForMoveEffects[gBattleCommunication[MOVE_EFFECT_BYTE]] == STATUS1_SLEEP)
-@@ -3051,6 +3292,8 @@ static void Cmd_tryfaintmon(void)
+@@ -3051,6 +3317,8 @@ static void Cmd_tryfaintmon(void)
  
  static void Cmd_dofaintanimation(void)
  {
@@ -736,7 +765,7 @@ index 3af09ec7a..a568d64f9 100644
      if (gBattleControllerExecFlags == 0)
      {
          gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
-@@ -3360,7 +3603,7 @@ static void Cmd_getexp(void)
+@@ -3360,7 +3628,7 @@ static void Cmd_getexp(void)
                  if (!(gBattleTypeFlags & BATTLE_TYPE_TRAINER) && gBattleMons[0].hp != 0 && !gBattleStruct->wildVictorySong)
                  {
                      BattleStopLowHpSound();
@@ -745,7 +774,7 @@ index 3af09ec7a..a568d64f9 100644
                      gBattleStruct->wildVictorySong++;
                  }
  
-@@ -3416,7 +3659,8 @@ static void Cmd_getexp(void)
+@@ -3416,7 +3684,8 @@ static void Cmd_getexp(void)
                      PREPARE_STRING_BUFFER(gBattleTextBuff2, i);
                      PREPARE_WORD_NUMBER_BUFFER(gBattleTextBuff3, 5, gBattleMoveDamage);
  
@@ -755,7 +784,7 @@ index 3af09ec7a..a568d64f9 100644
                      MonGainEVs(&gPlayerParty[gBattleStruct->expGetterMonId], gBattleMons[gBattlerFainted].species);
                  }
                  gBattleStruct->sentInPokes >>= 1;
-@@ -3913,6 +4157,7 @@ static void Cmd_bicword(void)
+@@ -3913,6 +4182,7 @@ static void Cmd_bicword(void)
  
  static void Cmd_pause(void)
  {
@@ -763,7 +792,7 @@ index 3af09ec7a..a568d64f9 100644
      if (gBattleControllerExecFlags == 0)
      {
          u16 value = T2_READ_16(gBattlescriptCurrInstr + 1);
-@@ -4688,6 +4933,13 @@ static void Cmd_switchinanim(void)
+@@ -4688,6 +4958,13 @@ static void Cmd_switchinanim(void)
  
      gAbsentBattlerFlags &= ~(gBitTable[gActiveBattler]);
  
@@ -777,7 +806,7 @@ index 3af09ec7a..a568d64f9 100644
      BtlController_EmitSwitchInAnim(B_COMM_TO_CONTROLLER, gBattlerPartyIndexes[gActiveBattler], gBattlescriptCurrInstr[2]);
      MarkBattlerForControllerExec(gActiveBattler);
  
-@@ -5318,6 +5570,7 @@ static void Cmd_playse(void)
+@@ -5318,6 +5595,7 @@ static void Cmd_playse(void)
  
  static void Cmd_fanfare(void)
  {
@@ -785,7 +814,7 @@ index 3af09ec7a..a568d64f9 100644
      gActiveBattler = gBattlerAttacker;
      BtlController_EmitPlayFanfareOrBGM(B_COMM_TO_CONTROLLER, T2_READ_16(gBattlescriptCurrInstr + 1), FALSE);
      MarkBattlerForControllerExec(gActiveBattler);
-@@ -5327,6 +5580,7 @@ static void Cmd_fanfare(void)
+@@ -5327,6 +5605,7 @@ static void Cmd_fanfare(void)
  
  static void Cmd_playfaintcry(void)
  {
@@ -793,7 +822,7 @@ index 3af09ec7a..a568d64f9 100644
      gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
      BtlController_EmitFaintingCry(B_COMM_TO_CONTROLLER);
      MarkBattlerForControllerExec(gActiveBattler);
-@@ -5700,6 +5954,8 @@ static void Cmd_drawpartystatussummary(void)
+@@ -5700,6 +5979,8 @@ static void Cmd_drawpartystatussummary(void)
      struct Pokemon *party;
      struct HpAndStatus hpStatuses[PARTY_SIZE];
  
@@ -802,7 +831,7 @@ index 3af09ec7a..a568d64f9 100644
      if (gBattleControllerExecFlags)
          return;
  
-@@ -5733,6 +5989,7 @@ static void Cmd_drawpartystatussummary(void)
+@@ -5733,6 +6014,7 @@ static void Cmd_drawpartystatussummary(void)
  
  static void Cmd_hidepartystatussummary(void)
  {
@@ -810,7 +839,7 @@ index 3af09ec7a..a568d64f9 100644
      gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
      BtlController_EmitHidePartyStatusSummary(B_COMM_TO_CONTROLLER);
      MarkBattlerForControllerExec(gActiveBattler);
-@@ -5923,6 +6180,7 @@ static void Cmd_atknameinbuff1(void)
+@@ -5923,6 +6205,7 @@ static void Cmd_atknameinbuff1(void)
  
  static void Cmd_drawlvlupbox(void)
  {
@@ -818,7 +847,7 @@ index 3af09ec7a..a568d64f9 100644
      if (gBattleScripting.drawlvlupboxState == 0)
      {
          // If the Pokémon getting exp is not in-battle then
-@@ -9902,10 +10160,59 @@ static void Cmd_removelightscreenreflect(void)
+@@ -9902,10 +10185,59 @@ static void Cmd_removelightscreenreflect(void)
      gBattlescriptCurrInstr++;
  }
  
@@ -862,7 +891,7 @@ index 3af09ec7a..a568d64f9 100644
 +    if (gBattleMons[target].status1 & (STATUS1_POISON | STATUS1_BURN | STATUS1_PARALYSIS | STATUS1_TOXIC_POISON)) odds = odds * 15 / 10;
 +    return odds;
 +}
-+
+ 
 +u8 CalculateBallCatchShakes(u32 odds, u16 item)
 +{
 +    u8 shakes;
@@ -874,13 +903,13 @@ index 3af09ec7a..a568d64f9 100644
 +    for (shakes = 0; shakes < BALL_3_SHAKES_SUCCESS && Random() < odds; shakes++);
 +    return item == ITEM_MASTER_BALL ? BALL_3_SHAKES_SUCCESS : shakes;
 +}
- 
++
 +static void Cmd_handleballthrow(void)
 +{
      if (gBattleControllerExecFlags)
          return;
  
-@@ -9926,72 +10233,7 @@ static void Cmd_handleballthrow(void)
+@@ -9926,72 +10258,7 @@ static void Cmd_handleballthrow(void)
      }
      else
      {
@@ -954,7 +983,7 @@ index 3af09ec7a..a568d64f9 100644
  
          if (gLastUsedItem != ITEM_SAFARI_BALL)
          {
-@@ -10020,15 +10262,7 @@ static void Cmd_handleballthrow(void)
+@@ -10020,15 +10287,7 @@ static void Cmd_handleballthrow(void)
          }
          else // mon may be caught, calculate shakes
          {
@@ -972,7 +1001,7 @@ index 3af09ec7a..a568d64f9 100644
              BtlController_EmitBallThrowAnim(B_COMM_TO_CONTROLLER, shakes);
              MarkBattlerForControllerExec(gActiveBattler);
 diff --git a/src/event_object_movement.c b/src/event_object_movement.c
-index 6b2e00333..d0b524c38 100644
+index 6b2e003..d0b524c 100644
 --- a/src/event_object_movement.c
 +++ b/src/event_object_movement.c
 @@ -2070,6 +2070,12 @@ static u8 FindObjectEventPaletteIndexByTag(u16 tag)
@@ -989,7 +1018,7 @@ index 6b2e00333..d0b524c38 100644
  {
      u8 i;
 diff --git a/src/main_menu.c b/src/main_menu.c
-index 45fa12cfc..b07a0a00d 100644
+index 45fa12c..b07a0a0 100644
 --- a/src/main_menu.c
 +++ b/src/main_menu.c
 @@ -1,4 +1,5 @@
@@ -1012,7 +1041,7 @@ index 45fa12cfc..b07a0a00d 100644
          gTasks[taskId].func = Task_HighlightSelectedMainMenuItem;
  }
 diff --git a/src/overworld.c b/src/overworld.c
-index 1d6b81c1f..4bce103d3 100644
+index 1d6b81c..4bce103 100644
 --- a/src/overworld.c
 +++ b/src/overworld.c
 @@ -1,4 +1,6 @@
@@ -1043,7 +1072,7 @@ index 1d6b81c1f..4bce103d3 100644
      DoMapLoadLoop(&gMain.state);
      SetFieldVBlankCallback();
 diff --git a/src/reshow_battle_screen.c b/src/reshow_battle_screen.c
-index 17a5d3b26..17533367e 100644
+index 17a5d3b..1753336 100644
 --- a/src/reshow_battle_screen.c
 +++ b/src/reshow_battle_screen.c
 @@ -1,4 +1,5 @@

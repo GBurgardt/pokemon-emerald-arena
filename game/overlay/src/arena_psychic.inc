@@ -11,7 +11,7 @@ static void PsychicReset(void)
     memset(sPsychic,0,sizeof(sPsychic));
     memset(gArenaPsychicTelemetry,0,sizeof(gArenaPsychicTelemetry));
     for(i=0;i<3;i++)sRockShadows[i]=MAX_SPRITES;
-    if(gBattleMons[0].species!=SPECIES_MEWTWO&&gBattleMons[1].species!=SPECIES_MEWTWO)return;
+    if(!BattleHasPsychic())return;
     for(i=0;i<3;i++)
     {sRockShadows[i]=CreateSprite(&sShadowTemplate,0,0,12);if(sRockShadows[i]!=MAX_SPRITES)gSprites[sRockShadows[i]].invisible=TRUE;}
 }

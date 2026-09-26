@@ -13,7 +13,7 @@ button:disabled{opacity:.55;cursor:wait}:focus-visible{outline:3px solid #17181c
 details{border-top:1px solid #c6c4bc;padding-top:15px;margin-top:26px}summary{cursor:pointer;font-weight:600}code{overflow-wrap:anywhere}footer{margin-top:36px;font-size:14px}
 </style>
 <main>
-<small>EMERALD ARENA · 0.9.0</small>
+<small>EMERALD ARENA · 0.10.0</small>
 <h1>Prepare your game.</h1>
 <p>Choose your unmodified <strong>Pokémon Emerald (USA/Europe)</strong> <code>.gba</code>.
 Your file is never uploaded or overwritten. Internet is needed once for the animations.</p>
@@ -22,13 +22,13 @@ Your file is never uploaded or overwritten. Internet is needed once for the anim
 <input id="file" type="file" accept=".gba" hidden aria-label="Choose your Emerald ROM">
 <progress id="progress" hidden aria-label="Preparing game"></progress>
 <p id="status" role="status" aria-live="polite">Loading setup. If this message stays here, open this page in Chrome, Firefox or Safari, not a file preview.</p>
-<p class="muted">Button not working? Open this page in your browser, or <a href="https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.9.0/Emerald-Arena-0.9.0.zip">download the setup ZIP</a> and extract it on a computer.</p>
+<p class="muted">Button not working? Open this page in your browser, or <a href="https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.0/Emerald-Arena-0.10.0.zip">download the setup ZIP</a> and extract it on a computer.</p>
 <noscript><p>Enable JavaScript in your browser to prepare the game.</p></noscript>
 <a id="download" class="download" hidden>Download game</a>
 <section id="ready" hidden aria-labelledby="next-title">
 <h2 id="next-title">Next: start your first fight</h2>
 <ol>
-<li>Save <strong>Emerald-Arena-0.9.0.gba</strong>, then open it in your GBA emulator.</li>
+<li>Save <strong>Emerald-Arena-0.10.0.gba</strong>, then open it in your GBA emulator.</li>
 <li>On a fresh save, highlight <strong>NEW GAME</strong> and press <strong>SELECT</strong>, not A.</li>
 <li>In the field, press <strong>L + R together</strong> to start a practice battle.</li>
 </ol>
@@ -71,7 +71,7 @@ file.onchange=async()=>{
     const patch=Uint8Array.from(atob(payload.patch),c=>c.charCodeAt(0));
     const result=await prepareRom(source,payload.manifest,patch,text=>status.textContent=text);
     objectUrl=URL.createObjectURL(new Blob([result],{type:'application/octet-stream'}));
-    download.href=objectUrl;download.download='Emerald-Arena-0.9.0.gba';download.hidden=false;ready.hidden=false;
+    download.href=objectUrl;download.download='Emerald-Arena-0.10.0.gba';download.hidden=false;ready.hidden=false;
     status.textContent='Verified. Download your game below, then open it in your emulator.';
     download.focus();
   }catch(error){

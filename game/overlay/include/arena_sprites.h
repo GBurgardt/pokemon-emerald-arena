@@ -6,6 +6,7 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint8_t bool8;
+typedef int8_t s8;
 #else
 #include "global.h"
 #endif
@@ -26,6 +27,7 @@ struct ArenaSpriteSet
     u16 species;
     const u16 *palette;
     struct ArenaSpriteAnimation animations[5];
+    const s8 *ground; // Median opaque foot line per pose/direction, from canvas centre.
 };
 const struct ArenaSpriteSet *ArenaSprites_Get(u16 species);
 u8 ArenaSprites_Frame(const struct ArenaSpriteAnimation *anim, u16 tick);

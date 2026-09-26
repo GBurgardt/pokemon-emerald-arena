@@ -29,6 +29,9 @@ struct ArenaMoveProfile
     u8 visual, palette, cone;
 };
 const struct ArenaMoveProfile *ArenaMoves_Get(u16 move);
+// 0=ordinary, 1=flame, 2=solar, 3=water, 4=ice, 5=fire,
+// 6=air, 7=electric, 8=shadow.
+u8 ArenaMoves_Beam(u16 move);
 // Q8 unit aim, pixel displacement. cone=1: 90 degree fan, cone=2: narrow fan.
 bool8 ArenaMoves_InCone(s16 dx, s16 dy, s16 aimX, s16 aimY, u8 range, u8 cone);
 bool8 ArenaMoves_SegmentHit(s16 x1, s16 y1, s16 x2, s16 y2,

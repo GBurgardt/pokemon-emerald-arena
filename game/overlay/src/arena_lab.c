@@ -34,6 +34,7 @@ extern const u8 EventScript_ArenaLabBattle[];
 extern const u8 EventScript_ArenaLabTrainerReturn[];
 static EWRAM_DATA u8 sTrainerFixture[16];
 static const u8 sTrainerFixtureDefeat[] = _("Good battle!");
+#include "arena_showcase150.inc"
 
 void ArenaLab_Tick(void)
 {
@@ -49,6 +50,7 @@ void ArenaLab_Tick(void)
     {
     case 1:
     case 18:
+    case 22:
         if (gArenaLabMailbox.species == 0 || gArenaLabMailbox.species >= NUM_SPECIES
             || gArenaLabMailbox.level == 0 || gArenaLabMailbox.level > MAX_LEVEL)
         {
@@ -56,6 +58,18 @@ void ArenaLab_Tick(void)
             break;
         }
         CreateScriptedWildMon(gArenaLabMailbox.species, gArenaLabMailbox.level, ITEM_NONE);
+        if(command==22)
+        {
+            u32 i,j;bool8 found=FALSE;
+            for(i=0;i<ARRAY_COUNT(sShowcase150);i++)if(sShowcase150[i].species==gArenaLabMailbox.species)
+            {
+                u8 ability=sShowcase150[i].ability;
+                SetMonData(&gEnemyParty[0],MON_DATA_ABILITY_NUM,&ability);
+                for(j=0;j<MAX_MON_MOVES;j++)SetMonMoveSlot(&gEnemyParty[0],j?MOVE_NONE:sShowcase150[i].move,j);
+                found=TRUE;break;
+            }
+            if(!found){gArenaLabMailbox.result=2;break;}
+        }
         if(command==18)
         {
             // Disposable demonstration encounter. Legal species-specific moves,
@@ -206,6 +220,45 @@ void ArenaLab_Tick(void)
                     gArenaLabCaptureAudit[9]=GetBoxMonDataAt(box,slot,MON_DATA_SANITY_IS_BAD_EGG);
                 }
             }
+        break;
+    }
+    case 23:
+    {
+        // Disposable legal TM/tutor loadouts; never changes a release save.
+        u16 species=GetMonData(&gPlayerParty[0],MON_DATA_SPECIES);
+        if(species==SPECIES_STARMIE||species==SPECIES_ALAKAZAM)
+        {
+            u8 ability=species==SPECIES_ALAKAZAM?1:0;
+            SetMonData(&gPlayerParty[0],MON_DATA_ABILITY_NUM,&ability);
+            SetMonMoveSlot(&gPlayerParty[0],MOVE_REFLECT,0);
+            SetMonMoveSlot(&gPlayerParty[0],MOVE_LIGHT_SCREEN,1);
+            SetMonMoveSlot(&gPlayerParty[0],species==SPECIES_STARMIE?MOVE_HYDRO_PUMP:MOVE_PSYCHIC,2);
+            SetMonMoveSlot(&gPlayerParty[0],MOVE_SWIFT,3);
+        }
+        else if(species==SPECIES_GOLEM||species==SPECIES_MARILL||species==SPECIES_AZUMARILL)
+        {
+            SetMonMoveSlot(&gPlayerParty[0],MOVE_ROLLOUT,0);
+            SetMonMoveSlot(&gPlayerParty[0],MOVE_DEFENSE_CURL,1);
+            SetMonMoveSlot(&gPlayerParty[0],MOVE_TACKLE,2);
+            SetMonMoveSlot(&gPlayerParty[0],MOVE_NONE,3);
+        }
+        else gArenaLabMailbox.result=2;
+        break;
+    }
+    case 21:
+    {
+        u32 i,j;
+        u16 species=GetMonData(&gPlayerParty[0],MON_DATA_SPECIES);
+        gArenaLabMailbox.result=2;
+        for(i=0;i<ARRAY_COUNT(sShowcase150);i++)if(sShowcase150[i].species==species)
+        {
+            u8 ability=sShowcase150[i].ability;
+            SetMonData(&gPlayerParty[0],MON_DATA_ABILITY_NUM,&ability);
+            for(j=0;j<MAX_MON_MOVES;j++)SetMonMoveSlot(&gPlayerParty[0],j?MOVE_NONE:sShowcase150[i].move,j);
+            // Legal tutor move provides native HP cost for absorption QA.
+            if(species==SPECIES_POLIWRATH)SetMonMoveSlot(&gPlayerParty[0],MOVE_SUBSTITUTE,1);
+            gArenaLabMailbox.result=0;break;
+        }
         break;
     }
     case 20:

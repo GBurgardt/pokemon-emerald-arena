@@ -86,6 +86,7 @@ static void SendoutInit(void)
         ArenaSprites_Decode(&b->art->animations[ARENA_ANIM_IDLE],b->facing,0,sMonFrameTiles[i]);
         ArenaRender_Copy(sMonFrameTiles[i],(u8*)OBJ_VRAM0+GetSpriteTileStartByTag(MON_TAG+i*2)*32,2048);
         b->drawnFrame=0;b->drawnDirection=b->facing;
+        gSprites[b->sprite].y=b->y/Q+8-b->art->ground[ARENA_ANIM_IDLE*8+b->facing]*MonVisualScale(i)/256;
     }
     sSendout.active=TRUE;gArenaSendoutTelemetry[0]=1;
 }
@@ -95,6 +96,13 @@ static void SendoutTick(void)
     u32 i;
     u16 age=++sSendout.age;
     gArenaSendoutTelemetry[1]=age;
+    // Start from a fresh matrix every frame, including wild opponents which
+    // skip the throw animation. Presentation scaling must not accumulate.
+    for(i=0;i<2;i++)
+    {
+        struct ArenaBody *b=&sArena.bodies[i];
+        SetOamMatrix(gSprites[b->sprite].oam.matrixNum,b->art?256:512,0,0,b->art?256:512);
+    }
     // Brief stage lighting, restored from the original palette, never a strobe.
     BlendPalette(16,240,age<16?age/4:age<100?4:age<144?(144-age)/11:0,RGB_BLACK);
     if(age>=SENDOUT_DURATION||(age>20&&JOY_NEW(B_BUTTON)))
@@ -172,5 +180,6 @@ static void SendoutTick(void)
         }
     }
     ArenaTerrain_Draw(FALSE,TRUE);
+    MonVisualScaleApply();
     AnimateSprites();BuildOamBuffer();ArenaRender_Ready();UpdatePaletteFade();
 }

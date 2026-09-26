@@ -17,6 +17,8 @@ import subprocess
 import urllib.request
 import urllib.error
 import time
+import struct
+import statistics
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -115,6 +117,7 @@ def main():
         subprocess.run(argv,check=True)
         lines.append(f'static const u16 sPmdPal{dex}[] = INCBIN_U16(".arena-dev/pmd/{dex}.gbapal");')
         entries = []
+        grounds = []
         shared_tiles = {}
         for a in bundle['animations']:
             ident = dex + a['name']
@@ -129,7 +132,20 @@ def main():
             lines.append(f'static const u8 sPmdTimes{ident}[] = {{{", ".join(map(str,durations))}}};')
             hit = sum(durations[:a['hit_frame']])
             entries.append(f'{{(const u8 *)sPmdTiles{tile_ident}, sPmdTimes{ident}, {len(durations)}, {sum(durations)}, {hit}}}')
-        table.append(f'{{SPECIES_{species}, sPmdPal{dex}, {{{", ".join(entries)}}}}}')
+            packed=Path(a['binary']).read_bytes()
+            base=struct.unpack_from('<I',packed)[0]
+            for direction in range(8):
+                bottoms=[]
+                for frame in range(len(durations)):
+                    ids=struct.unpack_from('<64H',packed,8+(direction*len(durations)+frame)*128)
+                    bottom=32
+                    for y in range(63,-1,-1):
+                        if any(any(packed[base+ids[(y//8)*8+x]*32+(y%8)*4:base+ids[(y//8)*8+x]*32+(y%8)*4+4]) for x in range(8)):
+                            bottom=y+1;break
+                    bottoms.append(bottom-32)
+                grounds.append(int(statistics.median(bottoms)))
+        lines.append(f'static const s8 sPmdGround{dex}[] = {{{", ".join(map(str,grounds))}}};')
+        table.append(f'{{SPECIES_{species}, sPmdPal{dex}, {{{", ".join(entries)}}}, sPmdGround{dex}}}')
     lines.append('static const struct ArenaSpriteSet sPmdSets[] = {\n' + ',\n'.join(table) + '\n};')
     header = OUT / 'sprites.inc'
     content = '\n'.join(lines) + '\n'
