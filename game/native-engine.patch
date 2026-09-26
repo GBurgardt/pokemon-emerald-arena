@@ -1,5 +1,5 @@
 diff --git a/Makefile b/Makefile
-index d25123a..6622764 100644
+index d25123ab8..662276465 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -112,7 +112,8 @@ INCLUDE_CPP_ARGS := $(INCLUDE_DIRS:%=-iquote %)
@@ -54,7 +54,7 @@ index d25123a..6622764 100644
  $(SYM): $(ELF)
  	$(OBJDUMP) -t $< | sort -u | grep -E "^0[2389]" | $(PERL) -p -e 's/^(\w{8}) (\w).{6} \S+\t(\w{8}) (\S+)$$/\1 \2 \3 \4/g' > $@
 diff --git a/data/battle_scripts_1.s b/data/battle_scripts_1.s
-index d7733eb..80e0dce 100644
+index d7733eb0e..80e0dcec3 100644
 --- a/data/battle_scripts_1.s
 +++ b/data/battle_scripts_1.s
 @@ -2806,6 +2806,10 @@ BattleScript_EffectCamouflage::
@@ -77,7 +77,7 @@ index d7733eb..80e0dce 100644
  @ Yes/No for sending out a new Pokémon when the opponent is switching
  	printstring STRINGID_ENEMYABOUTTOSWITCHPKMN
 diff --git a/data/event_scripts.s b/data/event_scripts.s
-index 6834c98..1a2fb4e 100644
+index 6834c98fb..1a2fb4eef 100644
 --- a/data/event_scripts.s
 +++ b/data/event_scripts.s
 @@ -1056,3 +1056,8 @@ Common_EventScript_LegendaryFlewAway::
@@ -90,7 +90,7 @@ index 6834c98..1a2fb4e 100644
 +	.include "data/scripts/arena_lab.inc"
 +#endif
 diff --git a/include/constants/flags.h b/include/constants/flags.h
-index 74b10cd..67edf2d 100644
+index 74b10cdfb..67edf2d05 100644
 --- a/include/constants/flags.h
 +++ b/include/constants/flags.h
 @@ -43,7 +43,7 @@
@@ -103,7 +103,7 @@ index 74b10cd..67edf2d 100644
  #define FLAG_UNUSED_0x022    0x22 // Unused Flag
  #define FLAG_UNUSED_0x023    0x23 // Unused Flag
 diff --git a/include/event_object_movement.h b/include/event_object_movement.h
-index ebc6a6d..73dfef3 100644
+index ebc6a6d0e..73dfef357 100644
 --- a/include/event_object_movement.h
 +++ b/include/event_object_movement.h
 @@ -1,5 +1,6 @@
@@ -114,7 +114,7 @@ index ebc6a6d..73dfef3 100644
  #include "constants/event_object_movement.h"
  
 diff --git a/ld_script.ld b/ld_script.ld
-index aeaf082..76cd65f 100644
+index aeaf08250..76cd65fc9 100644
 --- a/ld_script.ld
 +++ b/ld_script.ld
 @@ -13,8 +13,8 @@ MEMORY
@@ -160,7 +160,7 @@ index aeaf082..76cd65f 100644
          src/*.o(.rodata);
          data/*.o(.rodata);
 diff --git a/src/battle_controller_player.c b/src/battle_controller_player.c
-index 45bf1a1..3dda8ab 100644
+index 45bf1a17e..3dda8ab5c 100644
 --- a/src/battle_controller_player.c
 +++ b/src/battle_controller_player.c
 @@ -1,4 +1,5 @@
@@ -189,7 +189,7 @@ index 45bf1a1..3dda8ab 100644
          expPointsToGive = T1_READ_16(&gBattleBufferA[gActiveBattler][2]);
          taskId = CreateTask(Task_GiveExpToMon, 10);
 diff --git a/src/battle_main.c b/src/battle_main.c
-index 11fc168..1c08169 100644
+index 11fc16860..1c0816906 100644
 --- a/src/battle_main.c
 +++ b/src/battle_main.c
 @@ -1,4 +1,6 @@
@@ -449,7 +449,7 @@ index 11fc168..1c08169 100644
      {
          RandomlyGivePartyPokerus(gPlayerParty);
 diff --git a/src/battle_script_commands.c b/src/battle_script_commands.c
-index 3af09ec..d6441b4 100644
+index 3af09ec7a..a568d64f9 100644
 --- a/src/battle_script_commands.c
 +++ b/src/battle_script_commands.c
 @@ -1,5 +1,8 @@
@@ -471,7 +471,7 @@ index 3af09ec..d6441b4 100644
  
  #define DEFENDER_IS_PROTECTED ((gProtectStructs[gBattlerTarget].protected) && (gBattleMoves[gCurrentMove].flags & FLAG_PROTECT_AFFECTED))
  
-@@ -1303,6 +1309,209 @@ static void Cmd_damagecalc(void)
+@@ -1303,6 +1309,217 @@ static void Cmd_damagecalc(void)
      gBattlescriptCurrInstr++;
  }
  
@@ -488,6 +488,14 @@ index 3af09ec..d6441b4 100644
 +    gBattlerTarget = target;
 +    gCurrentMove = move;
 +    gDynamicBasePower = 0;
++    if (move == MOVE_ROLLOUT)
++    {
++        // Real-time Rollout: the arena reports the distance rolled as a stage.
++        // Power doubles per stage and once more after Defense Curl, the same
++        // ramp Cmd_rolloutdamagecalculation applies per consecutive turn.
++        gDynamicBasePower = gBattleMoves[move].power << gArenaRolloutStage;
++        if (gBattleMons[attacker].status2 & STATUS2_DEFENSE_CURL) gDynamicBasePower *= 2;
++    }
 +    gBattleStruct->dynamicMoveType = 0;
 +    gBattleScripting.dmgMultiplier = 1;
 +    gCritMultiplier = 1;
@@ -681,7 +689,7 @@ index 3af09ec..d6441b4 100644
  void AI_CalcDmg(u8 attacker, u8 defender)
  {
      u16 sideStatus = gSideStatuses[GET_BATTLER_SIDE(defender)];
-@@ -2139,6 +2348,25 @@ static void Cmd_printstring(void)
+@@ -2139,6 +2356,25 @@ static void Cmd_printstring(void)
      if (gBattleControllerExecFlags == 0)
      {
          u16 var = T2_READ_16(gBattlescriptCurrInstr + 1);
@@ -707,7 +715,7 @@ index 3af09ec..d6441b4 100644
          PrepareStringBattle(var, gBattlerAttacker);
          gBattlescriptCurrInstr += 3;
          gBattleCommunication[MSG_DISPLAY] = 1;
-@@ -2475,6 +2703,11 @@ void SetMoveEffect(bool8 primary, u8 certain)
+@@ -2475,6 +2711,11 @@ void SetMoveEffect(bool8 primary, u8 certain)
          }
          if (statusChanged == TRUE)
          {
@@ -719,7 +727,7 @@ index 3af09ec..d6441b4 100644
              BattleScriptPush(gBattlescriptCurrInstr + 1);
  
              if (sStatusFlagsForMoveEffects[gBattleCommunication[MOVE_EFFECT_BYTE]] == STATUS1_SLEEP)
-@@ -3051,6 +3284,8 @@ static void Cmd_tryfaintmon(void)
+@@ -3051,6 +3292,8 @@ static void Cmd_tryfaintmon(void)
  
  static void Cmd_dofaintanimation(void)
  {
@@ -728,7 +736,7 @@ index 3af09ec..d6441b4 100644
      if (gBattleControllerExecFlags == 0)
      {
          gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
-@@ -3360,7 +3595,7 @@ static void Cmd_getexp(void)
+@@ -3360,7 +3603,7 @@ static void Cmd_getexp(void)
                  if (!(gBattleTypeFlags & BATTLE_TYPE_TRAINER) && gBattleMons[0].hp != 0 && !gBattleStruct->wildVictorySong)
                  {
                      BattleStopLowHpSound();
@@ -737,7 +745,7 @@ index 3af09ec..d6441b4 100644
                      gBattleStruct->wildVictorySong++;
                  }
  
-@@ -3416,7 +3651,8 @@ static void Cmd_getexp(void)
+@@ -3416,7 +3659,8 @@ static void Cmd_getexp(void)
                      PREPARE_STRING_BUFFER(gBattleTextBuff2, i);
                      PREPARE_WORD_NUMBER_BUFFER(gBattleTextBuff3, 5, gBattleMoveDamage);
  
@@ -747,7 +755,7 @@ index 3af09ec..d6441b4 100644
                      MonGainEVs(&gPlayerParty[gBattleStruct->expGetterMonId], gBattleMons[gBattlerFainted].species);
                  }
                  gBattleStruct->sentInPokes >>= 1;
-@@ -3913,6 +4149,7 @@ static void Cmd_bicword(void)
+@@ -3913,6 +4157,7 @@ static void Cmd_bicword(void)
  
  static void Cmd_pause(void)
  {
@@ -755,7 +763,7 @@ index 3af09ec..d6441b4 100644
      if (gBattleControllerExecFlags == 0)
      {
          u16 value = T2_READ_16(gBattlescriptCurrInstr + 1);
-@@ -4688,6 +4925,13 @@ static void Cmd_switchinanim(void)
+@@ -4688,6 +4933,13 @@ static void Cmd_switchinanim(void)
  
      gAbsentBattlerFlags &= ~(gBitTable[gActiveBattler]);
  
@@ -769,7 +777,7 @@ index 3af09ec..d6441b4 100644
      BtlController_EmitSwitchInAnim(B_COMM_TO_CONTROLLER, gBattlerPartyIndexes[gActiveBattler], gBattlescriptCurrInstr[2]);
      MarkBattlerForControllerExec(gActiveBattler);
  
-@@ -5318,6 +5562,7 @@ static void Cmd_playse(void)
+@@ -5318,6 +5570,7 @@ static void Cmd_playse(void)
  
  static void Cmd_fanfare(void)
  {
@@ -777,7 +785,7 @@ index 3af09ec..d6441b4 100644
      gActiveBattler = gBattlerAttacker;
      BtlController_EmitPlayFanfareOrBGM(B_COMM_TO_CONTROLLER, T2_READ_16(gBattlescriptCurrInstr + 1), FALSE);
      MarkBattlerForControllerExec(gActiveBattler);
-@@ -5327,6 +5572,7 @@ static void Cmd_fanfare(void)
+@@ -5327,6 +5580,7 @@ static void Cmd_fanfare(void)
  
  static void Cmd_playfaintcry(void)
  {
@@ -785,7 +793,7 @@ index 3af09ec..d6441b4 100644
      gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
      BtlController_EmitFaintingCry(B_COMM_TO_CONTROLLER);
      MarkBattlerForControllerExec(gActiveBattler);
-@@ -5700,6 +5946,8 @@ static void Cmd_drawpartystatussummary(void)
+@@ -5700,6 +5954,8 @@ static void Cmd_drawpartystatussummary(void)
      struct Pokemon *party;
      struct HpAndStatus hpStatuses[PARTY_SIZE];
  
@@ -794,7 +802,7 @@ index 3af09ec..d6441b4 100644
      if (gBattleControllerExecFlags)
          return;
  
-@@ -5733,6 +5981,7 @@ static void Cmd_drawpartystatussummary(void)
+@@ -5733,6 +5989,7 @@ static void Cmd_drawpartystatussummary(void)
  
  static void Cmd_hidepartystatussummary(void)
  {
@@ -802,7 +810,7 @@ index 3af09ec..d6441b4 100644
      gActiveBattler = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
      BtlController_EmitHidePartyStatusSummary(B_COMM_TO_CONTROLLER);
      MarkBattlerForControllerExec(gActiveBattler);
-@@ -5923,6 +6172,7 @@ static void Cmd_atknameinbuff1(void)
+@@ -5923,6 +6180,7 @@ static void Cmd_atknameinbuff1(void)
  
  static void Cmd_drawlvlupbox(void)
  {
@@ -810,7 +818,7 @@ index 3af09ec..d6441b4 100644
      if (gBattleScripting.drawlvlupboxState == 0)
      {
          // If the Pokémon getting exp is not in-battle then
-@@ -9902,10 +10152,59 @@ static void Cmd_removelightscreenreflect(void)
+@@ -9902,10 +10160,59 @@ static void Cmd_removelightscreenreflect(void)
      gBattlescriptCurrInstr++;
  }
  
@@ -818,7 +826,8 @@ index 3af09ec..d6441b4 100644
 +// One formula for classic and arena captures. Do not change integer rounding:
 +// this is the original Emerald calculation, including status and ball bonuses.
 +u32 CalculateBallCatchOdds(u8 target, u16 item)
-+{
+ {
+-    u8 ballMultiplier = 0;
 +    u32 odds;
 +    u8 catchRate, multiplier = 10;
 +    if (item == ITEM_SAFARI_BALL)
@@ -855,8 +864,7 @@ index 3af09ec..d6441b4 100644
 +}
 +
 +u8 CalculateBallCatchShakes(u32 odds, u16 item)
- {
--    u8 ballMultiplier = 0;
++{
 +    u8 shakes;
 +    if (odds > 254) return BALL_3_SHAKES_SUCCESS;
 +    // A zero catch rate must not divide by zero. Normal species never use it.
@@ -872,7 +880,7 @@ index 3af09ec..d6441b4 100644
      if (gBattleControllerExecFlags)
          return;
  
-@@ -9926,72 +10225,7 @@ static void Cmd_handleballthrow(void)
+@@ -9926,72 +10233,7 @@ static void Cmd_handleballthrow(void)
      }
      else
      {
@@ -946,7 +954,7 @@ index 3af09ec..d6441b4 100644
  
          if (gLastUsedItem != ITEM_SAFARI_BALL)
          {
-@@ -10020,15 +10254,7 @@ static void Cmd_handleballthrow(void)
+@@ -10020,15 +10262,7 @@ static void Cmd_handleballthrow(void)
          }
          else // mon may be caught, calculate shakes
          {
@@ -964,7 +972,7 @@ index 3af09ec..d6441b4 100644
              BtlController_EmitBallThrowAnim(B_COMM_TO_CONTROLLER, shakes);
              MarkBattlerForControllerExec(gActiveBattler);
 diff --git a/src/event_object_movement.c b/src/event_object_movement.c
-index 6b2e003..d0b524c 100644
+index 6b2e00333..d0b524c38 100644
 --- a/src/event_object_movement.c
 +++ b/src/event_object_movement.c
 @@ -2070,6 +2070,12 @@ static u8 FindObjectEventPaletteIndexByTag(u16 tag)
@@ -981,7 +989,7 @@ index 6b2e003..d0b524c 100644
  {
      u8 i;
 diff --git a/src/main_menu.c b/src/main_menu.c
-index 45fa12c..b07a0a0 100644
+index 45fa12cfc..b07a0a00d 100644
 --- a/src/main_menu.c
 +++ b/src/main_menu.c
 @@ -1,4 +1,5 @@
@@ -1004,7 +1012,7 @@ index 45fa12c..b07a0a0 100644
          gTasks[taskId].func = Task_HighlightSelectedMainMenuItem;
  }
 diff --git a/src/overworld.c b/src/overworld.c
-index 1d6b81c..4bce103 100644
+index 1d6b81c1f..4bce103d3 100644
 --- a/src/overworld.c
 +++ b/src/overworld.c
 @@ -1,4 +1,6 @@
@@ -1035,7 +1043,7 @@ index 1d6b81c..4bce103 100644
      DoMapLoadLoop(&gMain.state);
      SetFieldVBlankCallback();
 diff --git a/src/reshow_battle_screen.c b/src/reshow_battle_screen.c
-index 17a5d3b..1753336 100644
+index 17a5d3b26..17533367e 100644
 --- a/src/reshow_battle_screen.c
 +++ b/src/reshow_battle_screen.c
 @@ -1,4 +1,5 @@

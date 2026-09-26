@@ -128,8 +128,9 @@ static void SpecialDraw(void)
         struct ArenaWarp*w=&sWarp[side];
         struct Sprite*mon=&gSprites[sArena.bodies[side].sprite];
         u8 id=sWarpFx[side].sprite,f=0;
-        // Undo the throw's head-first rotation on every ordinary frame.
-        if(sArena.bodies[side].art)SetOamMatrix(mon->oam.matrixNum,256,0,0,256);
+        // Undo the throw's head-first rotation on every ordinary frame;
+        // a Rollout in progress owns the matrix for its tumble.
+        if(sArena.bodies[side].art&&!Rolling(side)&&!sArena.bodies[side].flat)SetOamMatrix(mon->oam.matrixNum,256,0,0,256);
         if(w->active)
         {
             mon->invisible=w->age>=5&&w->age<10;

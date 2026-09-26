@@ -53,6 +53,9 @@ static const struct ArenaMoveProfile sProfiles[] =
     {MOVE_SMOKESCREEN, 0, ARENA_MOVE_SELF,       4,16,12,160, 0, 0, ARENA_VIS_SHADE,  ARENA_MOVE_PURPLE,1},
     {MOVE_TELEPORT,    0, ARENA_MOVE_SELF,       4, 3,24,110, 0, 0, ARENA_VIS_RUSH,   ARENA_MOVE_PURPLE,1},
     {MOVE_SEISMIC_TOSS,0, ARENA_MOVE_MELEE,      3,16, 1,100,48, 0, ARENA_VIS_SLAM,   ARENA_MOVE_CREAM, 1},
+    // Rollout spins up in place for the wind-up, then rolls along its facing
+    // with speed and power that grow with distance; see the arena controller.
+    {MOVE_ROLLOUT,  1408, ARENA_MOVE_RUSH,       0,40,96,30,220,30, ARENA_VIS_RUSH,   ARENA_MOVE_CREAM, 1},
     {MOVE_DIG,         0, ARENA_MOVE_MELEE,      3,12, 1,120,160,0, ARENA_VIS_SLAM,   ARENA_MOVE_CREAM, 1},
     {MOVE_FLY,         0, ARENA_MOVE_MELEE,      3,14, 1,140,180,0, ARENA_VIS_WING,   ARENA_MOVE_WHITE, 1},
     {MOVE_FOCUS_ENERGY,0, ARENA_MOVE_SELF,       4,24,16,95,  0, 0, ARENA_VIS_SLAM,   ARENA_MOVE_CREAM, 1},

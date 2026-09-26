@@ -80,5 +80,8 @@ extern struct ArenaResultTelemetry gArenaResultTelemetry;
 // whether each body is currently drawn inside a wall.
 struct ArenaGhostTelemetry {u32 crossings[2]; u8 phasing[2];};
 extern struct ArenaGhostTelemetry gArenaGhostTelemetry;
+// Real-time Rollout: how far the current roll has travelled, as a power stage
+// (0..3) read by the native damage adapter when the hit resolves.
+extern u8 gArenaRolloutStage;
 
 #endif

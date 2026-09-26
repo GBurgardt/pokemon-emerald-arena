@@ -135,6 +135,13 @@ Draining moves restore HP from actual damage. False Swipe leaves one HP.
 Fire attacks can cause native burns, with damage about every five active seconds.
 Pause and capture freeze that timer. [All 58 move profiles](game/overlay/src/arena_moves.c).
 
+Rollout is a real-time roll. Press A and the user spins up in place, then
+rolls the way it is facing (or the way you hold), faster and faster, until it
+hits something, curled into a ball in its own colours. It rolls right over
+the rival, flattening it for a moment.
+The farther it rolls, the harder it hits, and Defense Curl beforehand doubles
+that; a fast roll breaks objects in its way.
+
 Seismic Toss is a throw. Connect the grab up close and the attacker carries the
 target straight up off the screen, dives back down with it and slams it into
 the ground, leaving a crater. A throw that knocks the target out first circles
