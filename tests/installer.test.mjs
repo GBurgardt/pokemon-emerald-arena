@@ -42,8 +42,8 @@ test('release rejects wrong ROM before any network access',async()=>{
   assert.equal(fetched,false);
   assert.equal(await digest(Buffer.from(patch,'base64')),manifest.patch_sha256);
   assert.equal(manifest.species.length,150);
-  assert.equal(manifest.version,'0.10.1');
-  assert.equal(manifest.target_sha256,'64d4aed4beb4511483dfe9f655ef9f243fb188d74649a7d4af613789e144a8ad');
+  assert.equal(manifest.version,'0.10.2');
+  assert.equal(manifest.target_sha256,'3abaa1c525cc2f2bd0782fb81862313b0a4809f9fdc1519ebdf4d195899bafa7');
   assert.equal(manifest.target_size,33554432);
   assert.ok(manifest.species.every(s=>s.sprite_format==='tile-dictionary-v1'));
   assert.deepEqual(manifest.species.filter(s=>s.animations.some(a=>a.scale===2)).map(s=>s.name).sort(),['ARTICUNO','GYARADOS','RAYQUAZA','WAILORD','ZAPDOS']);

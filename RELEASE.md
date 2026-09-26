@@ -1,3 +1,16 @@
+# Emerald Arena 0.10.2
+
+[Download](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.2/Emerald-Arena-0.10.2.zip) · [Full BPS patch](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.2/Emerald-Arena-0.10.2-full.bps)
+
+Fixes a black rectangle during Reflect and Light Screen. Their projectile-style
+visual ID was also passed to the generic action renderer, reading beyond its
+tile atlas. Dedicated barriers remain; the generic renderer now rejects the
+wrong atlas and bounds-checks its frame reads.
+
+The Starmie showcase was re-recorded and all 480 frames checked. Earlier takes
+are unchanged. Barrier mechanics, PP and expiry tests still pass.
+ROM SHA-256: `3abaa1c525cc2f2bd0782fb81862313b0a4809f9fdc1519ebdf4d195899bafa7`.
+
 # Emerald Arena 0.10.1
 
 [Download](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.1/Emerald-Arena-0.10.1.zip) · [Full BPS patch](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.1/Emerald-Arena-0.10.1-full.bps) · [Re-recorded gameplay](media/emerald-arena-150.mp4)

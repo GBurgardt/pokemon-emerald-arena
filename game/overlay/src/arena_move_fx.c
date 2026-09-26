@@ -151,7 +151,11 @@ void ArenaMoveFx_Action(u8 side,const struct ArenaMoveProfile *p,
     u16 frame;
     if(sActorFx[side]==MAX_SPRITES)return;
     sprite=&gSprites[sActorFx[side]];
-    sprite->invisible=!active||paused||!p||p->kind==ARENA_MOVE_PROJECTILE||ArenaMoves_Beam(p->move);
+    // Projectile visual IDs index a different, 16px atlas. Self moves such as
+    // Light Screen have their own renderer and must never index sActions with
+    // a projectile ID (which reads beyond the 64px action atlas).
+    sprite->invisible=!active||paused||!p||p->kind==ARENA_MOVE_PROJECTILE||ArenaMoves_Beam(p->move)
+        ||p->visual>=ARENA_VIS_ABSORB;
     if(sprite->invisible)return;
     frame=min(3,age*4/p->active);
     // Chunky 64px impact sprite for committed physical signature attacks.
@@ -171,6 +175,7 @@ void ArenaMoveFx_Action(u8 side,const struct ArenaMoveProfile *p,
         return;
     }
     frame=(p->visual*8+dir)*4+frame;
+    if((u32)(frame+1)*2048>sizeof(sActions)){sprite->invisible=TRUE;return;}
     if(sDrawn[side]!=frame)
     {
         ArenaRender_Copy((const u8*)sActions+frame*2048,

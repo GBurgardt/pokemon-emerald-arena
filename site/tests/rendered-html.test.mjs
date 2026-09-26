@@ -23,7 +23,7 @@ for (const path of ["/", "/arena"]) {
     assert.match(html, /Download game/);
     assert.match(html, /<a class="repo" href="https:\/\/github\.com\/GBurgardt\/pokemon-emerald-arena">GitHub repo/);
     assert.match(html, /The original Pokémon Emerald, modified for real-time battles\./);
-    assert.match(html, /releases\/download\/v0\.10\.1\/Emerald-Arena-0\.10\.1\.zip/);
+    assert.match(html, /releases\/download\/v0\.10\.2\/Emerald-Arena-0\.10\.2\.zip/);
     assert.match(html, /href="\/prepare\.html"/);
     assert.match(html, /<video[^>]*src="\/emerald-arena-combat-update\.mp4"/);
     assert.match(html, /16 seconds: Blastoise versus Eevee/);
@@ -51,7 +51,7 @@ test("release assets are present and the installer stays local-only", async () =
   assert.match(installer, /lang="en"/);
   assert.match(installer, /Your file is never uploaded/);
   assert.match(installer, /crypto\.subtle\.digest/);
-  assert.match(installer, /download\.download='Emerald-Arena-0\.10\.1\.gba'/);
+  assert.match(installer, /download\.download='Emerald-Arena-0\.10\.2\.gba'/);
   assert.match(installer, /\[hidden\]\{display:none!important\}/);
   assert.doesNotMatch(installer, /XMLHttpRequest|FormData|method:[ ]*['"]POST/);
   const video = await readFile(new URL("../public/emerald-arena-combat-update.mp4", import.meta.url));

@@ -2,7 +2,7 @@
 
 Pokémon Emerald with real time battles. Inside the original GBA game.
 
-[**Download Emerald Arena**](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.1/Emerald-Arena-0.10.1.zip) · [Installation guide](PLAY.md)
+[**Download Emerald Arena**](https://github.com/GBurgardt/pokemon-emerald-arena/releases/download/v0.10.2/Emerald-Arena-0.10.2.zip) · [Installation guide](PLAY.md)
 
 [**Follow development on Twitter / X**](https://x.com/germanburgardt) for new previews, progress and updates.
 
@@ -16,7 +16,7 @@ Pokémon Emerald with real time battles. Inside the original GBA game.
 
 [Playing on an AYN Thor · 16 seconds](https://github.com/GBurgardt/pokemon-emerald-arena/raw/refs/heads/main/media/emerald-arena-ayn-thor.mp4)
 
-New in 0.10.1: 50 more animated Pokémon, Rollout, Reflect and Light Screen.
+New in 0.10.2: 50 more animated Pokémon, Rollout, Reflect and Light Screen.
 150 Pokémon, with larger Lugia, Ho-Oh and Salamence and better ground alignment.
 [Watch the new gameplay](media/emerald-arena-150.mp4).
 

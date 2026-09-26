@@ -1,4 +1,4 @@
-# Emerald Arena 0.10.1
+# Emerald Arena 0.10.2
 
 Pokémon Emerald with real-time battles. Move, dodge, attack and break the arena.
 Requires your own unmodified Emerald ROM (USA/Europe).
@@ -6,7 +6,7 @@ Requires your own unmodified Emerald ROM (USA/Europe).
 1. Extract this ZIP on a computer.
 2. Open **Prepare-Emerald-Arena.html** in a current Chrome, Safari or Firefox.
 3. Choose your original `.gba`, not a ZIP. Wait for verification and click **Download game**.
-4. Open **Emerald-Arena-0.10.1.gba** in your GBA emulator.
+4. Open **Emerald-Arena-0.10.2.gba** in your GBA emulator.
 5. With a separate fresh save, highlight **NEW GAME** and press **SELECT**, not A.
 6. Press **L and R together** in the field to fight. Charizard leads; reorder the party to try others.
 
