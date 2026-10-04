@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Emerald Arena iPhone Export</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#f4f2e9;color:#17181c;font:16px/1.45 system-ui,-apple-system,sans-serif}
+  header{padding:14px 16px;border-bottom:1px solid #ccc;background:#fff;position:sticky;top:0;z-index:2}
+  h1{font-size:18px;margin:0 0 6px}
+  p{margin:4px 0;color:#555}
+  button{margin-top:10px;width:100%;min-height:48px;border:0;border-radius:8px;background:#2948df;color:#fff;font-size:16px;font-weight:700}
+  button:disabled{opacity:.5}
+  #msg{font-size:14px;margin-top:8px}
+  iframe{display:block;width:100%;height:calc(100vh - 150px);border:0;background:#fff}
+</style>
+<header>
+  <h1>Emerald Arena — iPhone Export Helper</h1>
+  <p>Build the ROM below. When it says <b>Verified</b>, tap Share / Save ROM.</p>
+  <button id="share">Share / Save ROM</button>
+  <div id="msg">Waiting for Emerald Arena to finish.</div>
+</header>
+<iframe id="arena" src="Index.html" title="Emerald Arena installer"></iframe>
+<script>
+const frame = document.getElementById('arena');
+const msg = document.getElementById('msg');
+const btn = document.getElementById('share');
+
+btn.onclick = async () => {
+  try {
+    const doc = frame.contentDocument;
+    if (!doc) throw new Error('Could not access the installer.');
+    const a = doc.getElementById('download');
+    if (!a || a.hidden || !a.href || !a.href.startsWith('blob:')) {
+      throw new Error('The ROM is not ready yet. Wait until the installer says Verified.');
+    }
+
+    msg.textContent = 'Preparing the verified ROM for the iPhone Share sheet…';
+    const response = await fetch(a.href);
+    const blob = await response.blob();
+    const file = new File([blob], 'Emerald-Arena-0.11.0.gba',
+      {type:'application/octet-stream'});
+
+    if (navigator.canShare && navigator.canShare({files:[file]}) && navigator.share) {
+      await navigator.share({
+        files:[file],
+        title:'Emerald Arena 0.11.0'
+      });
+      msg.textContent = 'Share sheet opened. Choose Save to Files.';
+      return;
+    }
+
+    // Fallback for browsers that do not support sharing files.
+    const url = URL.createObjectURL(file);
+    const fallback = document.createElement('a');
+    fallback.href = url;
+    fallback.download = file.name;
+    fallback.textContent = 'Tap here to save the ROM';
+    fallback.style.cssText =
+      'display:block;margin-top:10px;padding:14px;background:#17181c;color:white;text-align:center;text-decoration:none;border-radius:8px;font-weight:700';
+    msg.replaceChildren(document.createTextNode('File sharing is unavailable here. '), fallback);
+  } catch (e) {
+    if (e && e.name === 'AbortError') {
+      msg.textContent = 'Share canceled. The ROM is still ready — tap Share / Save ROM again.';
+    } else {
+      msg.textContent = e?.message || String(e);
+    }
+  }
+};
+</script>
+</html>

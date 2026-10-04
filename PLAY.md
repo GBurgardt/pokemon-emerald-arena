@@ -27,6 +27,38 @@ Do not reuse emulator save states across versions.
 Your ROM is read locally, never uploaded or overwritten. The setup downloads
 animation files from pinned public sources. The finished game works offline.
 
+### iPhone / iOS setup using HostPilot
+
+The normal ROM preparation page can run on iPhone, but Safari may not save the generated `blob:` ROM correctly. The following method was tested on iPhone using HostPilot and `Emerald-Arena-iPhone-Helper.html`.
+
+1. Download and extract **Emerald-Arena-0.11.0.zip**.
+2. Open **HostPilot** on the iPhone.
+3. Tap **Add files** and add these three files from the extracted Emerald Arena download:
+   - `Prepare-Emerald-Arena.html`
+   - `install.mjs`
+   - `payload.json`
+4. In HostPilot, rename **`Prepare-Emerald-Arena.html` to `Index.html`**.
+5. Add **`Emerald-Arena-iPhone-Helper.html`** to HostPilot as a fourth file.
+
+HostPilot should now contain:
+
+- `Emerald-Arena-iPhone-Helper.html`
+- `Index.html`
+- `install.mjs`
+- `payload.json`
+
+6. Turn **Serve this site** ON and wait for HostPilot to show **Active**.
+7. Tap **Share URL** and open the site in **Safari**.
+8. Open **`Emerald-Arena-iPhone-Helper.html`**. The Emerald Arena preparation page will load inside the helper.
+9. Tap **Choose Emerald ROM** and select your own unmodified Pokémon Emerald (USA/Europe) `.gba` file from Files.
+10. Keep the page open while the ROM is checked and the game is prepared.
+11. **Wait until the installer says `Verified` before trying to save the ROM.**
+12. Tap **Share / Save ROM** at the top of the helper page.
+13. When the iOS Share Sheet appears, tap **Save to Files**.
+14. Choose a location and tap **Save**. The resulting file is **`Emerald-Arena-0.11.0.gba`**.
+15. Open the saved `.gba` file with your GBA emulator. For Delta, import/add the game and select `Emerald-Arena-0.11.0.gba`.
+
+If **Share / Save ROM** is tapped before preparation finishes, the helper will ask you to wait until the installer reports **Verified**. If the Share Sheet is canceled, tap **Share / Save ROM** again. A direct save link is also provided as a fallback when file sharing through the iOS Share Sheet is unavailable.
 ## 2. Open it in an emulator
 
 Open **Emerald-Arena-0.13.0.gba** using your GBA emulator's **Open / Load game**
