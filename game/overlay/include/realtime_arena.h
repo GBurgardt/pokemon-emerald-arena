@@ -16,6 +16,7 @@ s8 RealtimeArena_StatChange(u16 move, u8 *stat, bool8 *self);
 bool8 RealtimeArena_ResolveStatMove(u8 attacker, u8 target, u16 move);
 u16 RealtimeArena_DrainAmount(u16 hpDealt);
 void RealtimeArena_ResumeBattle(bool8 fainted);
+void RealtimeArena_FinishFlee(void);
 void RealtimeArena_ShowResultUi(void);
 bool8 RealtimeArena_RequestDemo(void);
 bool8 RealtimeArena_SetupDemo(void);

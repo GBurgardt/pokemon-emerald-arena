@@ -236,6 +236,7 @@ EWRAM_DATA u8 gArenaMenuRequest=0; // 1: native bag, 2: native party
 EWRAM_DATA u16 gArenaCompatibilityReason=ARENA_COMPAT_OK;
 static EWRAM_DATA u8 sPausePage=0;
 static EWRAM_DATA u8 sPauseChoice=0;
+static EWRAM_DATA u16 sFleeNotice=0; // frames to show "Can't escape!"
 static EWRAM_DATA u16 sBideDamage[2]={};
 static void ArenaExpFieldTick(void);
 
@@ -326,6 +327,7 @@ static const struct SpriteTemplate sAimTemplate =
     .affineAnims = gDummySpriteAffineAnimTable, .callback = SpriteCallbackDummy
 };
 static const u8 sTextPaused[] = _("ARROWS: PICK MOVE   START: PLAY");
+static const u8 sTextCantEscape[] = _("Can't escape!");
 static const u8 sTextPP[] = _(" PP ");
 static const u8 sMoveDirections[4][7] = {_("UP"),_("RIGHT"),_("DOWN"),_("LEFT")};
 static const u8 sMoveKinds[6][8] = {_("CLASSIC"),_("HIT"),_("DASH"),_("SHOT"),_("CONE"),_("BOOST")};
@@ -602,6 +604,8 @@ void RealtimeArena_ResetBattle(void)
     sArenaSendoutMask = 3;
     gArenaMenuRequest=0;
     sPausePage=0;
+    sPauseChoice=0;
+    sFleeNotice=0;
     memset(gArenaEvolutionTelemetry, 0, sizeof(gArenaEvolutionTelemetry));
     gRealtimeArenaQuietIntro = FALSE;
     ElementsResetBattle();
@@ -780,6 +784,38 @@ static const u8 sQualityLevel[] = _("LVL ");
 #include "arena_hud.inc"
 #include "arena_quality.inc"
 
+static u8 PauseMenuCount(void)
+{
+    // Trainers never forfeit from the arena pause menu. Hide RUN there.
+    return (gBattleTypeFlags & BATTLE_TYPE_TRAINER) ? 4 : 5;
+}
+
+static void ArenaTryFlee(void)
+{
+    gActiveBattler = 0;
+    gBattlerAttacker = 0;
+    if ((gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+        || IsRunningFromBattleImpossible() != BATTLE_RUN_SUCCESS
+        || !TryRunFromBattle(0))
+    {
+        sFleeNotice = 90;
+        PlaySE(SE_BOO);
+        sArena.hudDirty = TRUE;
+        return;
+    }
+    // Success: same quiet exit pattern as RealtimeArena_FinishCapture.
+    sArena.paused = FALSE;
+    sArena.active = FALSE;
+    gRealtimeArenaTelemetry.active = FALSE;
+    gRealtimeArenaTelemetry.exits++;
+    gRealtimeArenaQuietResult = TRUE;
+    gArenaResultTelemetry.started = gMain.vblankCounter1;
+    gMain.callback1 = sArena.savedCB1;
+    PlaySE(SE_FLEE);
+    RealtimeArena_FinishFlee();
+    SetMainCallback2(BattleMainCB2);
+}
+
 static void DrawHud(void)
 {
     u32 side;
@@ -790,17 +826,22 @@ static void DrawHud(void)
     {
         if(sPausePage==3)
         {
-            static const u8 labels[4][18]={_("POKEMON"),_("BAG"),_("MOVES"),_("RESUME")};
+            // Wild: POKEMON / BAG / MOVES / RUN / RESUME. Trainer hides RUN.
+            static const u8 labels[5][18]={_("POKEMON"),_("BAG"),_("MOVES"),_("RUN"),_("RESUME")};
             static const u8 title[]=_("PAUSED");
             static const u8 help[]=_("UP/DOWN: CHOOSE   A: OPEN");
+            u8 count=PauseMenuCount();
+            u8 step=count==5?10:11;
             FillWindowPixelBuffer(1,PIXEL_FILL(9));
             PrintPopup(8,3,title,5);
-            for(side=0;side<4;side++)
+            for(side=0;side<count;side++)
             {
-                if(side==sPauseChoice)WindowRect(1,7,18+side*11,4,7,5);
-                PrintPopup(18,16+side*11,labels[side],side==sPauseChoice?5:4);
+                u8 label=side;
+                if(count==4 && side==3)label=4; // RESUME occupies index 4 in labels[]
+                if(side==sPauseChoice)WindowRect(1,7,14+side*step,4,7,5);
+                PrintPopup(18,12+side*step,labels[label],side==sPauseChoice?5:4);
             }
-            HudTinyWindow(1,7,67,help,7,52);
+            HudTinyWindow(1,7,67,sFleeNotice?sTextCantEscape:help,7,52);
             PutWindowTilemap(1);CopyWindowToVram(1,COPYWIN_FULL);
         }
         else if(sPausePage)
@@ -2302,25 +2343,43 @@ static void CB2_Arena(void)
     if (JOY_NEW(START_BUTTON) && !sArena.resultTimer && sCapture.state==ARENA_CAPTURE_IDLE)
     {
         sArena.paused ^= TRUE;
-        if(sArena.paused){sPausePage=3;sPauseChoice=0;}
+        if(sArena.paused){sPausePage=3;sPauseChoice=0;sFleeNotice=0;}
         DrawStage();
         sArena.hudDirty = TRUE;
     }
     if(!ClashBusy()&&!GuardBusy()&&!SpecialBusy(0)&&!SpecialBusy(1))CaptureInput();
+    if(sFleeNotice)
+    {
+        if(!--sFleeNotice)sArena.hudDirty=TRUE;
+    }
     if(sArena.paused)
     {
         u16 keys=gMain.newKeys&DPAD_ANY;
         u8 slot=keys==DPAD_UP?0:keys==DPAD_RIGHT?1:keys==DPAD_DOWN?2:keys==DPAD_LEFT?3:MAX_MON_MOVES;
         if(sPausePage==3)
         {
+            u8 count=PauseMenuCount();
+            u8 resumeChoice=count-1;
+            u8 runChoice=count==5?3:0xFF;
             if(JOY_NEW(DPAD_UP|DPAD_DOWN))
-            {sPauseChoice=(sPauseChoice+(JOY_NEW(DPAD_DOWN)?1:3))%4;sArena.hudDirty=TRUE;}
+            {sPauseChoice=(sPauseChoice+(JOY_NEW(DPAD_DOWN)?1:count-1))%count;sArena.hudDirty=TRUE;}
             if(JOY_NEW(A_BUTTON))
             {
                 if(sPauseChoice<2 && !ClashBusy() && !GuardBusy() && !SpecialBusy(0) && !SpecialBusy(1))
                 {gArenaMenuRequest=sPauseChoice==0?2:1;ArenaExit(FALSE);return;}
                 if(sPauseChoice==2){sPausePage=0;sMoveMenuReady=FALSE;sArena.hudDirty=TRUE;}
-                if(sPauseChoice==3){sArena.paused=FALSE;DrawStage();sArena.hudDirty=TRUE;}
+                if(sPauseChoice==runChoice)
+                {
+                    // Gate RUN like SELECT: no capture/clash/special mid-action flee.
+                    if(!ClashBusy() && !GuardBusy() && !SpecialBusy(0) && !SpecialBusy(1)
+                        && !sArena.resultTimer && sCapture.state==ARENA_CAPTURE_IDLE)
+                    {
+                        ArenaTryFlee();
+                        if(!sArena.active)return;
+                    }
+                    else {sFleeNotice=90;PlaySE(SE_BOO);sArena.hudDirty=TRUE;}
+                }
+                if(sPauseChoice==resumeChoice){sArena.paused=FALSE;DrawStage();sArena.hudDirty=TRUE;}
             }
         }
         else if(JOY_NEW(L_BUTTON|R_BUTTON))

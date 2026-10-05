@@ -46,7 +46,7 @@ is not the supported setup path. Physical GBA hardware has not been verified.
 3. You arrive in the field with Charizard and five teammates. Press **L and R
    together** to start a practice encounter.
 4. Move with the direction buttons, **A** to attack, **B + a direction** to dodge.
-   **L / R** changes your selected move. **START** opens Pokémon / Bag / Moves / Resume.
+   **L / R** changes your selected move. **START** opens Pokémon / Bag / Moves / Run / Resume.
 
 These are **GBA button names**, not literal keyboard keys. In your emulator's
 input settings, check which keys correspond to A, B, L, R, START and SELECT.
@@ -67,8 +67,9 @@ Six additional Pokémon are in Box 1 at the PC.
 | L / R | Previous / next move |
 | Hold L + R in battle | Aim a Poké Ball; directions adjust the target |
 | Release L or R while aiming | Throw; B cancels before release |
-| START | Open Pokémon / Bag / Moves / Resume; press again to resume |
-| Up / down, then A in the pause menu | Open Pokémon, Bag or Moves; Resume continues |
+| START | Open Pokémon / Bag / Moves / Run / Resume; press again to resume |
+| Up / down, then A in the pause menu | Open Pokémon, Bag, Moves or Run; Resume continues |
+| RUN in a wild pause menu | Try to flee with vanilla rules (speed / Run Away / Smoke Ball). Success returns to the field; failure shows "Can't escape!" and stays in the arena. Hidden in trainer battles |
 | In MOVES: up / right / down / left | Choose move 1 / 2 / 3 / 4; B returns to the pause menu |
 | SELECT | Open party menu |
 | L + R in the field | Next practice opponent |
