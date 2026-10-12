@@ -15,6 +15,7 @@
 #include "arena_terrain.h"
 #include "arena_render.h"
 #include "arena_psychic.h"
+#include "arena_party_status.h"
 #include "event_object_movement.h"
 #include "graphics.h"
 #include "constants/event_objects.h"
@@ -263,10 +264,14 @@ static const struct WindowTemplate sArenaWindows[] =
 };
 static const u16 sArenaPalette[16] =
 {
-    RGB(3, 6, 9), RGB(4, 9, 12), RGB(6, 13, 15), RGB(10, 20, 19),
+    RGB(3, 6, 9), RGB(4, 9, 12), RGB(6, 13, 15),
+    // 3: trainer party ball row only -- normal cap, pure red (240,0,0).
+    RGB(29, 0, 0),
     RGB(29, 31, 29), RGB(8, 29, 23), RGB(31, 14, 8), RGB(29, 24, 9),
     RGB(12, 15, 17), RGB(2, 3, 6), RGB(31, 31, 31),
-    RGB(3, 6, 9), RGB(2, 6, 9)
+    RGB(3, 6, 9), RGB(2, 6, 9),
+    // 13-15: trainer party ball row only (frozen cap, poisoned cap, fainted cap).
+    RGB(10, 18, 31), RGB(20, 8, 24), RGB(8, 8, 9)
 };
 static const u32 sShotTiles[8] =
 {

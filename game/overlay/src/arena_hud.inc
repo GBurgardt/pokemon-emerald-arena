@@ -10,6 +10,71 @@ static const u8 sHudPPLabel[] = _("PP ");
 static EWRAM_DATA bool8 sHudCached=FALSE;
 static EWRAM_DATA u16 sHudLastHp[2]={},sHudLastMax[2]={},sHudLastSpecies[2]={};
 static EWRAM_DATA u8 sHudLastLevel[2]={};
+static EWRAM_DATA u8 sHudLastBallState[2][PARTY_SIZE]={};
+// Every ball keeps the same Poke Ball shape (cap / dark band with a white
+// button / white base); a status just pulls the cap toward its color, same
+// order as the ARENA_BALL_* constants (fainted, frozen, asleep, paralyzed,
+// burned, poisoned, normal). Normal's cap is a pure red (240,0,0); burn uses
+// a more orange red, kept distinct from it.
+static const u8 sBallCapColor[7]={15,13,8,7,6,14,3};
+
+static u8 PartyBallFlags(u32 status1)
+{
+    u32 f=0;
+    if(status1&STATUS1_FREEZE)f|=ARENA_STATUS_FROZEN;
+    if(status1&STATUS1_SLEEP)f|=ARENA_STATUS_ASLEEP;
+    if(status1&STATUS1_PARALYSIS)f|=ARENA_STATUS_PARALYZED;
+    if(status1&STATUS1_BURN)f|=ARENA_STATUS_BURNED;
+    if(status1&STATUS1_PSN_ANY)f|=ARENA_STATUS_POISONED;
+    return f;
+}
+
+// The active battler's HP/status are read live off gBattleMons (updated every
+// frame); benched party members are read from the native party struct, which
+// the arena keeps in sync on every HP/status change (see the SetMonData calls
+// throughout realtime_arena.c).
+static u8 PartySlotBallState(u32 side,u32 slot)
+{
+    u16 hp;u32 status;
+    if(slot==gBattlerPartyIndexes[side])
+    {
+        hp=gBattleMons[side].hp;
+        status=gBattleMons[side].status1;
+    }
+    else
+    {
+        struct Pokemon *mon=side?&gEnemyParty[slot]:&gPlayerParty[slot];
+        hp=GetMonData(mon,MON_DATA_HP);
+        status=GetMonData(mon,MON_DATA_STATUS);
+    }
+    return ArenaPartyStatus_BallState(hp,PartyBallFlags(status));
+}
+
+// gEnemyPartyCount is only kept current by link-trade code (src/trade.c); a
+// normal trainer battle never refreshes it, so it reads back 0. Recompute
+// both counts directly instead of trusting the cached globals.
+static u32 PartyCountForSide(u32 side)
+{
+    return side?CalculateEnemyPartyCount():CalculatePlayerPartyCount();
+}
+
+// Wild battles keep no party-ball cost at all: the result is unused there.
+static bool8 ComputePartyBallStates(u8 states[2][PARTY_SIZE])
+{
+    u32 side,i;
+    bool8 changed=FALSE;
+    if(!(gBattleTypeFlags&BATTLE_TYPE_TRAINER))return FALSE;
+    for(side=0;side<2;side++)
+    {
+        u32 count=min(PartyCountForSide(side),PARTY_SIZE);
+        for(i=0;i<count;i++)
+        {
+            states[side][i]=PartySlotBallState(side,i);
+            if(states[side][i]!=sHudLastBallState[side][i])changed=TRUE;
+        }
+    }
+    return changed;
+}
 static void HudTinyWindow(u8 window,u32 x,u32 y,const u8 *text,u8 color,u32 maxChars)
 {
     u32 n=0;
@@ -36,8 +101,10 @@ static void DrawStatusHud(void)
 {
     u32 side;
     u8 text[64];
+    u8 ballStates[2][PARTY_SIZE];
+    bool8 ballRowChanged=ComputePartyBallStates(ballStates);
     sHudRecovery=RecoveryPips();
-    if(sHudCached && sHudLastHp[0]==gBattleMons[0].hp && sHudLastHp[1]==gBattleMons[1].hp
+    if(sHudCached && !ballRowChanged && sHudLastHp[0]==gBattleMons[0].hp && sHudLastHp[1]==gBattleMons[1].hp
         && sHudLastMax[0]==gBattleMons[0].maxHP && sHudLastMax[1]==gBattleMons[1].maxHP
         && sHudLastSpecies[0]==gBattleMons[0].species && sHudLastSpecies[1]==gBattleMons[1].species
         && sHudLastLevel[0]==gBattleMons[0].level && sHudLastLevel[1]==gBattleMons[1].level)return;
@@ -66,8 +133,24 @@ static void DrawStatusHud(void)
         sHudLastHp[side]=mon->hp;sHudLastMax[side]=mon->maxHP;sHudLastSpecies[side]=mon->species;
         sHudLastLevel[side]=mon->level;
     }
-    if(!(gBattleTypeFlags&BATTLE_TYPE_TRAINER)
-        && GetSetPokedexFlag(SpeciesToNationalPokedexNum(gBattleMons[1].species),FLAG_GET_CAUGHT))
+    if(gBattleTypeFlags&BATTLE_TYPE_TRAINER)
+    {
+        // Below the HP bar, in the 3px left in the 24px HUD strip (y=21-23).
+        for(side=0;side<2;side++)
+        {
+            u32 count=min(PartyCountForSide(side),PARTY_SIZE),i;
+            u32 x0=side?129:8;
+            for(i=0;i<count;i++)
+            {
+                u32 x=x0+i*4,state=ballStates[side][i];
+                HudRect(x,21,3,1,sBallCapColor[state]);
+                HudRect(x,22,1,1,9);HudRect(x+1,22,1,1,10);HudRect(x+2,22,1,1,9);
+                HudRect(x,23,3,1,10);
+                sHudLastBallState[side][i]=state;
+            }
+        }
+    }
+    else if(GetSetPokedexFlag(SpeciesToNationalPokedexNum(gBattleMons[1].species),FLAG_GET_CAUGHT))
     {
         HudRect(118,4,5,7,9);HudRect(117,5,7,5,9);
         HudRect(119,4,3,1,6);HudRect(118,5,5,2,6);
